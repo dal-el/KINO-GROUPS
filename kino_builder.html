@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>KINO BUILDER</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f14;--surface:#151720;--card:#1c1f2e;--border:#252840;--border2:#2e3254;
+  --gold:#e8b84b;--gold2:#f5d080;--blue:#4a9eff;--blue2:#7bbcff;
+  --green:#3ecf8e;--red:#ff5a5a;--purple:#a78bfa;--purple2:#c4b5fd;
+  --text:#e4e6f0;--muted:#6b7099;--muted2:#8890bb;--price:#ff9f3f;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;min-height:100vh;padding-bottom:140px;}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(167,139,250,.07) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 30% at 80% 110%,rgba(232,184,75,.05) 0%,transparent 50%);
+  pointer-events:none;z-index:0;}
+
+.header{background:linear-gradient(180deg,#10131d 0%,#0d0f14 100%);border-bottom:1px solid var(--border);
+  padding:16px 16px 12px;position:sticky;top:0;z-index:100;}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,#6d28d9,var(--purple));border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:#fff;
+  box-shadow:0 4px 16px rgba(167,139,250,.35);}
+.logo-text{font-family:'Oswald',sans-serif;}
+.logo-text .l1{font-size:20px;font-weight:700;color:var(--purple2);letter-spacing:2px;line-height:1;}
+.logo-text .l2{font-size:10px;color:var(--muted2);letter-spacing:3px;text-transform:uppercase;}
+
+.live-badge{display:flex;align-items:center;gap:6px;background:rgba(62,207,142,.1);
+  border:1px solid rgba(62,207,142,.3);border-radius:20px;padding:5px 12px;
+  font-size:11px;color:var(--green);font-family:'Source Code Pro',monospace;cursor:pointer;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+
+/* STATS CSS */
+.sp-stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px 10px;}
+.sp-bpair{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.sp-bball{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#ffe7aa;text-shadow:-1px -1px 0 rgba(0,0,0,.82),1px -1px 0 rgba(0,0,0,.82),-1px 1px 0 rgba(0,0,0,.82),1px 1px 0 rgba(0,0,0,.82),0 2px 4px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.18);position:relative;overflow:hidden;box-shadow:inset 0 8px 14px rgba(255,255,255,.18),inset 0 -10px 14px rgba(0,0,0,.28),0 5px 14px rgba(0,0,0,.34);}
+.sp-bball::before{content:'';position:absolute;top:7px;left:9px;width:18px;height:11px;border-radius:50%;background:rgba(255,255,255,.28);filter:blur(.5px);}
+.sp-bval{min-width:34px;height:26px;padding:0 7px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#888e97;background:linear-gradient(180deg,#f8f9fc 0%,#d9dee7 100%);border:2px solid rgba(255,255,255,.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 6px rgba(0,0,0,.2);}
+.sp-hotwrap,.sp-coldwrap{background:#101624;border:1px solid #263155;border-radius:14px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.22);}
+.sp-hothead,.sp-coldhead{padding:7px 10px;font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-align:center;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);}
+.sp-hothead{background:linear-gradient(180deg,#ffbe2f 0%,#ff8d00 55%,#cf5c00 100%);}
+.sp-coldhead{background:linear-gradient(180deg,#88d7ff 0%,#4c9bff 55%,#245fcb 100%);}
+.sp-hotbg{padding:12px 10px;background:radial-gradient(circle at 50% 18%,rgba(255,220,120,.3),transparent 26%),linear-gradient(180deg,#5b2400 0%,#a43d00 40%,#ff8200 75%,#7a2d00 100%);}
+.sp-coldbg{padding:12px 10px;background:radial-gradient(circle at 50% 18%,rgba(255,255,255,.22),transparent 25%),linear-gradient(180deg,#19488f 0%,#2f7fd6 45%,#8addff 85%,#2357a8 100%);}
+.sp-fire-grid,.sp-ice-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px 10px;}
+.sp-fireball,.sp-iceball{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:18px;font-weight:900;color:#fff3b8;text-shadow:-1px -1px 0 rgba(0,0,0,.85),1px -1px 0 rgba(0,0,0,.85),-1px 1px 0 rgba(0,0,0,.85),1px 1px 0 rgba(0,0,0,.85),0 2px 4px rgba(0,0,0,.55);position:relative;overflow:hidden;border:2px solid rgba(255,255,255,.2);}
+.sp-fireball{background:radial-gradient(circle at 35% 30%,#fff9df 0%,#ffe59f 22%,#ffc045 40%,#ff8e00 64%,#cf4500 100%);box-shadow:0 0 0 1px rgba(255,167,53,.25),0 0 18px rgba(255,123,0,.35),inset 0 10px 12px rgba(255,255,255,.18),inset 0 -10px 12px rgba(0,0,0,.22);}
+.sp-iceball{background:radial-gradient(circle at 35% 30%,#ffffff 0%,#dcf7ff 22%,#a9e9ff 42%,#69bfff 67%,#2e74d6 100%);box-shadow:0 0 0 1px rgba(130,214,255,.22),0 0 18px rgba(94,197,255,.28),inset 0 10px 12px rgba(255,255,255,.22),inset 0 -10px 12px rgba(0,0,0,.18);}
+.sp-fireball::before,.sp-iceball::before{content:'';position:absolute;top:7px;left:9px;width:18px;height:11px;border-radius:50%;background:rgba(255,255,255,.28);}
+.sp-fireval,.sp-iceval{min-width:34px;height:26px;padding:0 7px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;background:rgba(18,22,33,.82);border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 6px rgba(0,0,0,.25);}
+.sp-hcard{background:#121827;border:1px solid #263155;border-radius:14px;padding:10px 10px 12px;margin-bottom:12px;}
+.sp-hmeta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.sp-hid{font-size:11px;color:#ffd76b;font-weight:800;letter-spacing:1px;}
+.sp-htime{font-size:11px;color:#8e97c6;font-family:monospace;}
+.sp-kino-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;}
+.sp-kcell{aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#0c1120 0%,#0a0f1b 100%);border:1px solid #222d4e;color:#7a83b8;font-size:11px;font-weight:800;}
+.sp-kcell.hit{background:linear-gradient(180deg,#f1c84f 0%,#ddaa1f 100%);border-color:#ffd15d;color:#111;box-shadow:0 0 14px rgba(241,193,63,.28),inset 0 1px 0 rgba(255,255,255,.35);}
+.sp-kcell.bonus{background:linear-gradient(180deg,#ff6d6d 0%,#c51717 100%);border-color:#ff8d8d;color:#fff3c9;}
+.sp-klegend{margin-top:8px;font-size:10px;color:#8e97c6;display:flex;gap:12px;align-items:center;}
+.sp-dot{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:middle;margin-right:5px;}
+.sp-dot.hit{background:#dfaf2c;}.sp-dot.bonus{background:#d62020;}
+#sp-draws-wrap.grid-view .sp-hcard{margin-bottom:0;padding:7px 7px 8px;border-radius:10px;}
+#sp-draws-wrap.grid-view .sp-hmeta{margin-bottom:6px;}
+#sp-draws-wrap.grid-view .sp-hid{font-size:9px;}
+#sp-draws-wrap.grid-view .sp-htime{font-size:9px;}
+#sp-draws-wrap.grid-view .sp-kino-grid{gap:2px;}
+#sp-draws-wrap.grid-view .sp-kcell{font-size:8px;border-radius:4px;}
+#sp-draws-wrap.grid-view .sp-klegend{font-size:9px;gap:8px;margin-top:5px;}
+@media(max-width:420px){.sp-stats-grid,.sp-fire-grid,.sp-ice-grid{gap:10px 8px}.sp-bball,.sp-fireball,.sp-iceball{width:46px;height:46px;font-size:17px}.sp-bval,.sp-fireval,.sp-iceval{height:24px;font-size:15px}.sp-kcell{font-size:10px}}
+
+.wrap{padding:16px;position:relative;z-index:1;max-width:480px;margin:0 auto;}
+.sec-title{font-family:'Oswald',sans-serif;font-size:13px;font-weight:500;letter-spacing:3px;
+  text-transform:uppercase;color:var(--muted2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.step-dot{width:22px;height:22px;border-radius:50%;background:var(--purple);color:#fff;
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* GRID */
+.num-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:12px;}
+.nc{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  font-family:'Source Code Pro',monospace;font-size:11px;font-weight:600;
+  cursor:pointer;transition:all .12s;color:var(--muted);user-select:none;}
+.nc:active{transform:scale(.9);}
+.nc.in-block{border-width:2px;}
+.nc.pending{background:rgba(232,184,75,.15);border-color:var(--gold);color:var(--gold2);}
+
+/* BLOCKS */
+.blocks-list{margin-bottom:12px;}
+.block-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;
+  overflow:hidden;margin-bottom:8px;animation:slideUp .2s ease forwards;opacity:0;transform:translateY(8px);}
+@keyframes slideUp{to{opacity:1;transform:translateY(0);}}
+.block-head{padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.block-badge{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;flex-shrink:0;}
+.block-name{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;flex:1;}
+.block-size-badge{font-family:'Source Code Pro',monospace;font-size:10px;background:rgba(255,255,255,.05);
+  border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--muted2);}
+.block-std-btn{
+  width:28px;height:28px;border-radius:7px;
+  background:var(--surface);border:1.5px solid var(--border);
+  color:var(--muted2);font-size:13px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;flex-shrink:0;font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:0;
+}
+.block-std-btn.locked{
+  background:rgba(232,184,75,.15);border-color:var(--gold);color:var(--gold);
+  box-shadow:0 0 8px rgba(232,184,75,.25);
+}
+/* locked block card highlight */
+.block-card.is-standard{border-color:rgba(232,184,75,.4);}
+.block-del{width:26px;height:26px;border-radius:6px;background:rgba(255,90,90,.1);
+  border:1px solid rgba(255,90,90,.2);color:var(--red);font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.block-del:hover{background:rgba(255,90,90,.2);}
+.block-body{padding:10px 12px;display:flex;flex-wrap:wrap;gap:5px;}
+.block-ball{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Source Code Pro',monospace;font-size:11px;font-weight:600;border:2px solid;}
+
+/* PENDING */
+.pending-bar{background:rgba(232,184,75,.06);border:1px solid rgba(232,184,75,.2);
+  border-radius:10px;padding:10px 14px;margin-bottom:12px;display:none;}
+.pending-bar.visible{display:block;}
+.pending-label{font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:8px;font-family:'Oswald',sans-serif;}
+.pending-nums{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.p-ball{width:32px;height:32px;border-radius:50%;background:rgba(232,184,75,.15);border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-family:'Source Code Pro',monospace;font-size:10px;color:var(--gold2);cursor:pointer;}
+.p-ball:hover{background:rgba(255,90,90,.2);border-color:var(--red);}
+.pending-actions{display:flex;gap:8px;}
+.pa-btn{flex:1;padding:8px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Lato',sans-serif;
+  border:none;font-weight:700;transition:all .2s;}
+.pa-confirm{background:linear-gradient(135deg,#6d28d9,var(--purple));color:#fff;}
+.pa-cancel{background:var(--surface);border:1px solid var(--border);color:var(--muted2);}
+
+.add-block-btn{width:100%;padding:12px;background:rgba(167,139,250,.06);border:1.5px dashed rgba(167,139,250,.3);
+  border-radius:10px;color:var(--purple2);font-size:13px;cursor:pointer;font-family:'Lato',sans-serif;
+  transition:all .2s;margin-bottom:20px;}
+.add-block-btn:hover{background:rgba(167,139,250,.12);border-color:var(--purple);}
+.reset-btn{width:100%;padding:12px;background:rgba(255,90,90,.06);border:1px solid rgba(255,90,90,.2);
+  border-radius:10px;color:var(--red);font-size:13px;cursor:pointer;font-family:'Lato',sans-serif;
+  transition:all .2s;margin-bottom:8px;margin-top:4px;}
+.reset-btn:hover{background:rgba(255,90,90,.12);}
+
+/* CONTROLS */
+.th-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.th-label{font-size:12px;color:var(--muted2);flex:1;line-height:1.5;}
+.th-ctrl{display:flex;align-items:center;gap:6px;}
+.th-btn{width:30px;height:30px;border-radius:8px;background:var(--card);border:1px solid var(--border);
+  color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.th-btn:hover{border-color:var(--purple);color:var(--purple);}
+.th-val{font-family:'Oswald',sans-serif;font-size:24px;color:var(--purple2);min-width:32px;text-align:center;}
+
+.cond-box{background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.15);
+  border-radius:8px;padding:10px 14px;font-size:12px;color:var(--muted2);
+  line-height:1.7;margin-bottom:20px;font-family:'Source Code Pro',monospace;}
+.cond-box b{color:var(--purple2);}.cond-box .hl{color:var(--green);font-weight:700;}.cond-box .warn{color:var(--price);}
+
+.info-banner{background:rgba(62,207,142,.05);border:1px solid rgba(62,207,142,.15);
+  border-radius:8px;padding:10px 14px;font-size:11px;color:var(--muted2);
+  margin-bottom:20px;line-height:1.7;font-family:'Source Code Pro',monospace;}
+.info-banner b{color:var(--green);}
+
+/* GEN BTN */
+.gen-btn{width:100%;padding:18px;background:linear-gradient(135deg,#6d28d9,var(--purple),var(--purple2));
+  border:none;border-radius:14px;font-family:'Oswald',sans-serif;font-size:20px;
+  font-weight:600;letter-spacing:3px;color:#fff;cursor:pointer;transition:all .2s;
+  box-shadow:0 6px 24px rgba(167,139,250,.25);margin-bottom:24px;}
+.gen-btn:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(167,139,250,.35);}
+.gen-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+
+/* RESULTS */
+.res-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.res-title{font-family:'Oswald',sans-serif;font-size:22px;color:var(--green);letter-spacing:2px;}
+.res-count{background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3);
+  border-radius:20px;padding:4px 14px;font-family:'Source Code Pro',monospace;font-size:11px;color:var(--green);}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+.sg-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;}
+.sg-val{font-family:'Oswald',sans-serif;font-size:20px;color:var(--green);line-height:1;}
+.sg-val.gold{color:var(--gold);}.sg-val.blue{color:var(--blue2);}.sg-val.orange{color:var(--price);}
+.sg-key{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:3px;}
+.note-box{background:rgba(74,158,255,.05);border:1px solid rgba(74,158,255,.15);
+  border-radius:8px;padding:10px 14px;font-size:11px;color:var(--blue2);margin-bottom:14px;font-family:'Source Code Pro',monospace;}
+
+.res-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;
+  overflow:hidden;margin-bottom:10px;animation:slideUp .25s ease forwards;opacity:0;transform:translateY(12px);}
+.rc-head{background:var(--surface);border-bottom:1px solid var(--border);padding:9px 14px;display:flex;align-items:center;gap:8px;}
+.rc-idx{width:26px;height:26px;border-radius:50%;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.3);
+  display:flex;align-items:center;justify-content:center;font-family:'Source Code Pro',monospace;font-size:10px;font-weight:600;color:var(--green);}
+.rc-title{font-size:12px;font-weight:700;letter-spacing:1px;flex:1;}
+.rc-size{font-family:'Source Code Pro',monospace;font-size:10px;color:var(--purple2);
+  background:rgba(167,139,250,.1);border-radius:6px;padding:2px 8px;}
+.rc-body{padding:12px 14px;}
+.rc-blocks{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.rc-block-chip{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.04);
+  border:1px solid var(--border2);border-radius:8px;padding:3px 7px;}
+.rc-block-dot{width:7px;height:7px;border-radius:50%;}
+.rc-block-name{font-size:10px;color:var(--muted2);font-family:'Source Code Pro',monospace;}
+.rc-balls{display:flex;flex-wrap:wrap;gap:5px;}
+.ball{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Source Code Pro',monospace;font-size:11px;font-weight:600;border:2px solid;}
+
+.err-box{text-align:center;padding:24px 16px;border:1px solid rgba(255,90,90,.3);
+  background:rgba(255,90,90,.05);border-radius:12px;color:var(--red);font-size:13px;line-height:1.6;}
+.empty-state{text-align:center;padding:30px 16px;border:1px dashed var(--border);border-radius:14px;color:var(--muted);margin-bottom:20px;}
+.empty-state-icon{font-size:36px;margin-bottom:10px;display:block;opacity:.4;}
+.empty-state p{font-size:13px;line-height:1.6;}
+
+/* TOGGLE BAR */
+.toggle-bar{display:none;gap:8px;margin-bottom:14px;}
+.toggle-bar.visible{display:flex;}
+.toggle-btn{flex:1;padding:11px 8px;background:var(--card);border:1.5px solid var(--border);
+  border-radius:10px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;
+  color:var(--muted2);cursor:pointer;text-align:center;transition:all .2s;}
+.toggle-btn.active-win{border-color:var(--green);color:var(--green);background:rgba(62,207,142,.08);}
+.toggle-btn.active-draw{border-color:var(--gold);color:var(--gold);background:rgba(232,184,75,.08);}
+.clear-winner-btn{width:100%;padding:10px;background:rgba(62,207,142,.08);border:1.5px solid var(--green);
+  border-radius:10px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;
+  color:var(--green);cursor:pointer;margin-bottom:10px;display:none;}
+
+/* WINNER GRID OVERLAY */
+.nc.winner{position:relative;}
+.nc.winner::after{content:'';position:absolute;inset:-3px;border-radius:8px;
+  border:2.5px solid #ffffff;
+  background:rgba(255,255,255,.08);
+  box-shadow:0 0 8px rgba(255,255,255,.6), 0 0 16px rgba(255,255,255,.25);
+  pointer-events:none;}
+
+/* DRAW BADGES */
+.draw-badge{font-family:'Source Code Pro',monospace;font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:6px;margin-left:6px;}
+.draw-badge.hit-full{background:rgba(62,207,142,.2);color:var(--green);border:1px solid var(--green);}
+.draw-badge.hit-good{background:rgba(74,158,255,.15);color:var(--blue2);border:1px solid var(--blue);}
+.draw-badge.hit-low{background:rgba(107,112,153,.15);color:var(--muted2);border:1px solid var(--border);}
+.payout-badge{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;
+  padding:2px 8px;border-radius:6px;margin-left:4px;letter-spacing:1px;}
+.payout-badge.win{background:rgba(232,184,75,.15);color:var(--gold);border:1px solid var(--gold);}
+.payout-badge.nowin{background:rgba(107,112,153,.1);color:var(--muted);border:1px solid var(--border);}
+.payout-badge.big{background:rgba(62,207,142,.15);color:var(--green);border:1px solid var(--green);}
+
+/* BALL HIT */
+.ball.hit{background:linear-gradient(135deg,#3a2800,#5a3e00)!important;border-color:var(--gold)!important;
+  color:var(--gold2)!important;box-shadow:0 0 8px rgba(232,184,75,.5);}
+
+/* TOTAL WINNINGS */
+.total-winnings{background:linear-gradient(135deg,rgba(232,184,75,.1),rgba(255,159,63,.08));
+  border:1.5px solid rgba(232,184,75,.4);border-radius:12px;padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.total-winnings-label{font-size:12px;color:var(--muted2);line-height:1.6;}
+.total-winnings-label b{color:var(--gold);}
+.total-winnings-amount{font-family:'Oswald',sans-serif;font-size:36px;color:var(--gold);line-height:1;text-align:right;}
+.total-winnings-amount small{font-size:14px;color:var(--muted2);font-family:'Lato',sans-serif;}
+
+/* VERIFIED BOX */
+.verified-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px;}
+.verified-title{font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:2px;color:var(--muted2);
+  text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.verified-count{font-family:'Source Code Pro',monospace;font-size:13px;font-weight:600;color:var(--green);}
+.verified-balls{display:flex;flex-wrap:wrap;gap:6px;}
+.vball{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Source Code Pro',monospace;font-size:11px;font-weight:600;
+  border:1.5px solid var(--border2);background:linear-gradient(135deg,#181c2e,#1c2035);color:var(--muted2);}
+.vball.hit{background:linear-gradient(135deg,#3a2800,#5a3e00);border-color:var(--gold);
+  color:var(--gold2);box-shadow:0 0 8px rgba(232,184,75,.4);}
+
+/* STICKY QR BUTTON */
+.sticky-bottom{position:fixed;bottom:0;left:0;right:0;z-index:90;pointer-events:none;padding:0 16px 16px;}
+.qr-btn-sticky{
+  width:100%;max-width:480px;margin:0 auto;display:block;
+  padding:16px;border-radius:14px;
+  background:linear-gradient(135deg,#0d5c3a,#1a8a5a,var(--green));
+  border:none;font-family:'Oswald',sans-serif;font-size:18px;font-weight:600;
+  letter-spacing:2px;color:#fff;cursor:pointer;
+  box-shadow:0 6px 24px rgba(62,207,142,.3);
+  pointer-events:all;transition:all .2s;
+}
+.qr-btn-sticky:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(62,207,142,.4);}
+
+/* QR MODAL */
+.qr-modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);}
+.qr-modal.open{display:flex;flex-direction:column;}
+.qr-modal-inner{
+  background:var(--bg);border-top:1px solid var(--border);
+  border-radius:20px 20px 0 0;
+  margin-top:auto;max-height:92vh;
+  display:flex;flex-direction:column;
+  max-width:480px;width:100%;margin-left:auto;margin-right:auto;
+}
+.qr-modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.qr-modal-title{font-family:'Oswald',sans-serif;font-size:18px;color:var(--green);letter-spacing:2px;}
+.qr-close{width:32px;height:32px;border-radius:8px;background:var(--surface);
+  border:1px solid var(--border);color:var(--muted2);font-size:16px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.qr-modal-body{overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;}
+
+.qr-toolbar-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px;}
+.qr-section-label{font-size:10px;color:var(--muted2);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.qr-sel-summary{font-family:'Oswald',sans-serif;font-size:12px;margin-bottom:8px;}
+.qr-chip-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;}
+.qr-chip{padding:7px 4px;border-radius:8px;font-family:'Oswald',sans-serif;font-size:13px;
+  font-weight:700;cursor:pointer;flex:1;min-width:36px;text-align:center;border:1.5px solid var(--border);
+  background:var(--surface);color:var(--muted2);transition:all .15s;}
+.qr-chip.active{border-color:var(--gold);background:var(--gold);color:#000;}
+.qr-tog-row{display:flex;gap:8px;margin-bottom:4px;}
+.qr-tog{flex:1;padding:10px 4px;border-radius:8px;font-family:'Oswald',sans-serif;font-size:13px;
+  font-weight:700;cursor:pointer;text-align:center;border:1.5px solid var(--border);
+  background:var(--surface);color:var(--muted2);transition:all .15s;}
+.qr-tog.active-bonus{border-color:var(--price);background:var(--price);color:#000;}
+.qr-tog.active-para{border-color:var(--blue);background:var(--blue);color:#fff;}
+
+.qr-cost-box{background:var(--surface);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--muted2);line-height:1.9;}
+.qr-cost-total{font-family:'Oswald',sans-serif;font-size:22px;color:var(--gold);}
+
+.qr-ticket{background:linear-gradient(180deg,rgba(24,27,38,.98),rgba(18,20,30,.98));
+  border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);}
+.qr-ticket-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px;}
+.qr-ticket-title{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--green);}
+.qr-ticket-sub{font-size:11px;color:var(--muted2);margin-bottom:12px;}
+.qr-box{background:#fff;border-radius:12px;padding:10px;display:flex;align-items:center;justify-content:center;min-height:240px;margin-bottom:12px;}
+.qr-line-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--surface);margin-bottom:6px;}
+.qr-line-idx{min-width:22px;height:22px;border-radius:50%;background:var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted2);}
+.qr-line-nums{font-family:'Source Code Pro',monospace;font-size:12px;color:var(--blue2);letter-spacing:1px;flex:1;}
+.qr-ticket-footer{margin-top:10px;font-size:11px;color:var(--muted2);line-height:1.8;border-top:1px solid var(--border);padding-top:10px;}
+.qr-ticket-cost{float:right;font-family:'Oswald',sans-serif;font-size:18px;color:var(--gold);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">B</div>
+      <div class="logo-text">
+        <div class="l1">KINO BUILDER</div>
+        <div class="l2">ΣΥΣΤΗΜΑ ΟΜΑΔΩΝ ΑΡΙΘΜΩΝ</div>
+      </div>
+    </div>
+    <div class="live-badge" onclick="toggleStats()">
+      <div class="live-dot"></div>
+      <span id="liveBadgeText">STATS</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- STEP 1: BLOCKS -->
+  <div class="sec-title"><div class="step-dot">1</div> ΟΜΑΔΕΣ ΑΡΙΘΜΩΝ</div>
+  <div class="info-banner">
+    Επίλεξε αριθμούς και πάτα <b>ΠΡΟΣΘΗΚΗ ΟΜΑΔΑΣ</b>.<br>
+    Κάθε ομάδα μπορεί να έχει <b>οποιοδήποτε μέγεθος</b>.<br>
+    Κανένας αριθμός δεν μπορεί να ανήκει σε δύο ομάδες.
+  </div>
+
+  <!-- TOGGLE BAR: εμφανίζεται μετά τη δημιουργία συστήματος, πάνω από το πλέγμα -->
+  <div class="toggle-bar" id="toggleBar">
+    <div class="toggle-btn" id="btnWinner" onclick="toggleMode('winner')">🏆 ΝΙΚΗΤΡΙΑ ΣΤΗΛΗ</div>
+    <div class="toggle-btn" id="btnDraw" onclick="toggleMode('draw')">🎯 ΔΙΑΛΟΓΗ</div>
+  </div>
+  <button class="clear-winner-btn" id="clearWinnerBtn" onclick="clearWinner()">✕ ΚΑΘΑΡΙΣΜΟΣ ΝΙΚΗΤΡΙΑΣ</button>
+
+  <div class="num-grid" id="numGrid"></div>
+
+  <div class="pending-bar" id="pendingBar">
+    <div class="pending-label">✏️ ΝΕΕΣ ΕΠΙΛΟΓΕΣ — ΠΑΤΑ ΑΡΙΘΜΟ ΓΙΑ ΑΦΑΙΡΕΣΗ</div>
+    <div class="pending-nums" id="pendingNums"></div>
+    <div class="pending-actions">
+      <button class="pa-btn pa-confirm" onclick="confirmBlock()">✅ ΠΡΟΣΘΗΚΗ ΟΜΑΔΑΣ</button>
+      <button class="pa-btn pa-cancel" onclick="cancelPending()">✖ ΑΚΥΡΟ</button>
+    </div>
+  </div>
+
+  <div class="blocks-list" id="blocksList"></div>
+  <div class="empty-state" id="emptyState">
+    <span class="empty-state-icon">🧩</span>
+    <p>Δεν έχεις ορίσει ακόμα ομάδες.<br>Επίλεξε αριθμούς και πρόσθεσε την πρώτη ομάδα.</p>
+  </div>
+  <button class="add-block-btn" id="addBlockBtn" onclick="startNewBlock()" style="display:none">➕ ΠΡΟΣΘΗΚΗ ΝΕΑΣ ΟΜΑΔΑΣ</button>
+  <button class="reset-btn" id="resetBtn" onclick="resetAll()" style="display:none">🗑 ΕΠΑΝΑΦΟΡΑ ΟΛΩΝ</button>
+
+  <!-- STEP 2: k = ομάδες ανά στήλη -->
+  <div class="sec-title" id="step2title" style="display:none"><div class="step-dot">2</div> ΟΜΑΔΕΣ ΑΝΑ ΣΤΗΛΗ</div>
+  <div id="step2Section" style="display:none">
+    <div class="cond-box" style="margin-bottom:12px;font-size:12px;">
+      Πόσες ομάδες θέλεις να συνδυάζονται σε κάθε στήλη;<br>
+      <b style="color:var(--purple2)">Π.χ. 2 → κάθε στήλη = 2 ομάδες ενωμένες (6αδα αν κάθε ομάδα έχει 3 αριθμούς)</b>
+    </div>
+    <div class="th-row" style="margin-bottom:20px;">
+      <div class="th-label">Ομάδες ανά στήλη (k)</div>
+      <div class="th-ctrl">
+        <button class="th-btn" onclick="adjK(-1)">−</button>
+        <div class="th-val" id="kDisplay">2</div>
+        <button class="th-btn" onclick="adjK(+1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: GUARANTEE -->
+  <div class="sec-title" id="step3title" style="display:none"><div class="step-dot">3</div> ΕΓΓΥΗΣΗ</div>
+  <div id="guaranteeSection" style="display:none">
+    <div class="th-row">
+      <div class="th-label">Αν κληρωθούν τουλάχιστον<br><b id="trigLabel" style="color:var(--purple2)">—</b> από τις ομάδες σου</div>
+      <div class="th-ctrl">
+        <button class="th-btn" onclick="adjTrig(-1)">−</button>
+        <div class="th-val" id="trigDisplay">3</div>
+        <button class="th-btn" onclick="adjTrig(+1)">+</button>
+      </div>
+    </div>
+    <div class="th-row">
+      <div class="th-label">…εγγυόμαστε ότι τουλάχιστον<br><b id="hitLabel" style="color:var(--green)">—</b> ομάδες θα είναι μαζί σε 1 στήλη</div>
+      <div class="th-ctrl">
+        <button class="th-btn" onclick="adjHit(-1)">−</button>
+        <div class="th-val" id="hitDisplay">2</div>
+        <button class="th-btn" onclick="adjHit(+1)">+</button>
+      </div>
+    </div>
+    <div class="cond-box" id="condBox">—</div>
+  </div>
+
+  <button class="gen-btn" id="genBtn" onclick="generate()" style="display:none">⚡ ΔΗΜΙΟΥΡΓΙΑ ΣΥΣΤΗΜΑΤΟΣ</button>
+
+  <div id="resultsWrap"></div>
+</div>
+
+<script>
+// 10 STRICT UNIQUE COLORS
+var BC = [
+  {bg:'rgba(167,139,250,.18)',b:'#a78bfa',d:'#a78bfa',t:'#c4b5fd',n:'Μωβ'},
+  {bg:'rgba(74,158,255,.18)', b:'#4a9eff',d:'#4a9eff',t:'#7bbcff',n:'Μπλε'},
+  {bg:'rgba(62,207,142,.18)', b:'#3ecf8e',d:'#3ecf8e',t:'#6ee7b7',n:'Πράσινο'},
+  {bg:'rgba(255,90,90,.18)',  b:'#ff5a5a',d:'#ff5a5a',t:'#ff9090',n:'Κόκκινο'},
+  {bg:'rgba(232,184,75,.18)', b:'#e8b84b',d:'#e8b84b',t:'#f5d080',n:'Χρυσό'},
+  {bg:'rgba(251,146,60,.18)', b:'#fb923c',d:'#fb923c',t:'#fdba74',n:'Πορτοκαλί'},
+  {bg:'rgba(56,189,248,.18)', b:'#38bdf8',d:'#38bdf8',t:'#7dd3fc',n:'Γαλάζιο'},
+  {bg:'rgba(244,114,182,.18)',b:'#f472b6',d:'#f472b6',t:'#f9a8d4',n:'Ροζ'},
+  {bg:'rgba(52,211,153,.18)', b:'#34d399',d:'#34d399',t:'#a7f3d0',n:'Βεραμάν'},
+  {bg:'rgba(250,204,21,.18)', b:'#facc15',d:'#facc15',t:'#fde68a',n:'Κίτρινο'},
+];
+
+var MAX_LINES = 300, TICKET = 0.50;
+var blocks = [], pendingNums = new Set();
+var blockK = 2;       // ομάδες ανά στήλη — ορίζεται στο Βήμα 2
+var triggerVal = 3;   // πρέπει > blockK
+var hitVal = 2;       // πρέπει <= blockK και < triggerVal
+var blockCounter = 0;
+var standardIds = new Set(); // IDs ομάδων που είναι Σταθερές
+
+function toggleStandard(id) {
+  if (standardIds.has(id)) standardIds.delete(id);
+  else standardIds.add(id);
+  renderBlocks();
+  updateUI();
+  // clear results when standard changes
+  document.getElementById('resultsWrap').innerHTML = '';
+  currentLines = null;
+  document.getElementById('qrBtnSticky').style.display = 'none';
+  document.getElementById('toggleBar').className = 'toggle-bar';
+}
+
+// ── GRID ──
+function buildGrid() {
+  var g = document.getElementById('numGrid'); g.innerHTML = '';
+  for (var n = 1; n <= 80; n++) {
+    var d = document.createElement('div');
+    d.className = 'nc'; d.id = 'nc' + n;
+    d.textContent = n < 10 ? '0'+n : ''+n;
+    (function(num){ d.onclick = function(){ toggleNum(num); }; })(n);
+    g.appendChild(d);
+  }
+}
+function ownerOf(num) {
+  for (var i = 0; i < blocks.length; i++)
+    if (blocks[i].numbers.indexOf(num) >= 0) return blocks[i];
+  return null;
+}
+function toggleNum(num) {
+  if (winnerMode) { toggleNumWinner(num); return; }
+  if (ownerOf(num)) return;
+  pendingNums.has(num) ? pendingNums.delete(num) : pendingNums.add(num);
+  refreshGrid(); refreshPendingBar();
+}
+function refreshGrid() {
+  for (var n = 1; n <= 80; n++) {
+    var el = document.getElementById('nc'+n); if (!el) continue;
+    var ow = ownerOf(n);
+    if (ow) {
+      el.className = 'nc in-block';
+      el.style.background = ow.bg; el.style.borderColor = ow.b; el.style.color = ow.t;
+    } else if (pendingNums.has(n)) {
+      el.className = 'nc pending';
+      el.style.background = ''; el.style.borderColor = ''; el.style.color = '';
+    } else {
+      el.className = 'nc';
+      el.style.background = ''; el.style.borderColor = ''; el.style.color = '';
+    }
+  }
+}
+function refreshPendingBar() {
+  var bar = document.getElementById('pendingBar'), cont = document.getElementById('pendingNums');
+  if (pendingNums.size === 0) { bar.classList.remove('visible'); return; }
+  bar.classList.add('visible'); cont.innerHTML = '';
+  Array.from(pendingNums).sort(function(a,b){return a-b;}).forEach(function(num) {
+    var b = document.createElement('div'); b.className = 'p-ball';
+    b.textContent = num < 10 ? '0'+num : ''+num;
+    (function(n){ b.onclick = function(){ pendingNums.delete(n); refreshGrid(); refreshPendingBar(); }; })(num);
+    cont.appendChild(b);
+  });
+}
+function startNewBlock() { window.scrollTo({top:0, behavior:'smooth'}); }
+function confirmBlock() {
+  if (pendingNums.size === 0) return;
+  var nums = Array.from(pendingNums).sort(function(a,b){return a-b;});
+  blockCounter++;
+  var c = BC[blocks.length % BC.length];
+  blocks.push({id:blockCounter, name:'ΟΜΑΔΑ '+blockCounter, numbers:nums, bg:c.bg, b:c.b, d:c.d, t:c.t, n:c.n});
+  pendingNums.clear();
+  refreshGrid(); refreshPendingBar(); renderBlocks(); updateUI();
+}
+function cancelPending() { pendingNums.clear(); refreshGrid(); refreshPendingBar(); }
+function deleteBlock(id) {
+  blocks = blocks.filter(function(b){ return b.id !== id; });
+  // re-assign colors strictly
+  blocks.forEach(function(bl,i){ var c=BC[i%BC.length]; bl.bg=c.bg; bl.b=c.b; bl.d=c.d; bl.t=c.t; bl.n=c.n; });
+  refreshGrid(); renderBlocks(); updateUI();
+  document.getElementById('resultsWrap').innerHTML = '';
+  currentLines = null;
+  winnerMode = false; drawActive = false; winnerNums.clear();
+  document.getElementById('qrBtnSticky').style.display = 'none';
+  document.getElementById('toggleBar').className = 'toggle-bar';
+  document.getElementById('btnWinner').className = 'toggle-btn';
+  document.getElementById('btnDraw').className   = 'toggle-btn';
+  document.getElementById('clearWinnerBtn').style.display = 'none';
+}
+function renderBlocks() {
+  var list = document.getElementById('blocksList');
+  var empty = document.getElementById('emptyState');
+  var addBtn = document.getElementById('addBlockBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  if (blocks.length === 0) {
+    list.innerHTML = ''; empty.style.display = 'block';
+    addBtn.style.display = 'none'; resetBtn.style.display = 'none'; return;
+  }
+  empty.style.display = 'none'; addBtn.style.display = 'block'; resetBtn.style.display = 'block';
+  list.innerHTML = '';
+  blocks.forEach(function(bl) {
+    var isStd = standardIds.has(bl.id);
+    var card = document.createElement('div');
+    card.className = 'block-card' + (isStd ? ' is-standard' : '');
+    var ballsHTML = bl.numbers.map(function(n) {
+      return '<div class="block-ball" style="background:'+bl.bg+';border-color:'+bl.b+';color:'+bl.t+'">'+(n<10?'0'+n:''+n)+'</div>';
+    }).join('');
+    var stdLabel = isStd ? '🔒' : 'Σ';
+    var stdTitle = isStd ? 'Σταθερή (κλειδωμένη) — κλικ για ξεκλείδωμα' : 'Ορισμός ως Σταθερή';
+    card.innerHTML =
+      '<div class="block-head">'+
+        '<div class="block-badge" style="background:'+bl.bg+';color:'+bl.t+';border:2px solid '+bl.b+'">'+bl.id+'</div>'+
+        '<div class="block-name" style="color:'+bl.t+'">'+bl.name+' <span style="font-size:9px;opacity:.6">('+bl.n+')</span>'+
+          (isStd ? ' <span style="font-size:9px;color:var(--gold);font-weight:700;">ΣΤΑΘΕΡΗ</span>' : '')+
+        '</div>'+
+        '<div class="block-size-badge">'+bl.numbers.length+' αρ.</div>'+
+        '<button class="block-std-btn'+(isStd?' locked':'')+'" onclick="toggleStandard('+bl.id+')" title="'+stdTitle+'">'+stdLabel+'</button>'+
+        '<div class="block-del" onclick="deleteBlock('+bl.id+')">✕</div>'+
+      '</div>'+
+      '<div class="block-body">'+ballsHTML+'</div>';
+    list.appendChild(card);
+  });
+}
+function resetAll() {
+  if (!confirm('Να διαγραφούν όλες οι ομάδες;')) return;
+  blocks = []; pendingNums.clear(); blockCounter = 0;
+  blockK = 2; triggerVal = 3; hitVal = 2; standardIds.clear();
+  refreshGrid(); refreshPendingBar(); renderBlocks(); updateUI();
+  document.getElementById('resultsWrap').innerHTML = '';
+  currentLines = null;
+  winnerMode = false; drawActive = false; winnerNums.clear();
+  document.getElementById('qrBtnSticky').style.display = 'none';
+  document.getElementById('toggleBar').className = 'toggle-bar';
+  document.getElementById('btnWinner').className = 'toggle-btn';
+  document.getElementById('btnDraw').className   = 'toggle-btn';
+  document.getElementById('clearWinnerBtn').style.display = 'none';
+}
+
+// ── UI ──
+function updateUI() {
+  var nFree = blocks.filter(function(b){ return !standardIds.has(b.id); }).length;
+  var nStd  = standardIds.size;
+  // need at least 1 free block + (1 free or standard)
+  var has = blocks.length >= 2 && nFree >= 1;
+  document.getElementById('step2title').style.display = has ? 'flex' : 'none';
+  document.getElementById('step2Section').style.display = has ? 'block' : 'none';
+  document.getElementById('step3title').style.display = has ? 'flex' : 'none';
+  document.getElementById('guaranteeSection').style.display = has ? 'block' : 'none';
+  document.getElementById('genBtn').style.display = has ? 'block' : 'none';
+  if (!has) return;
+  clampAll();
+  document.getElementById('kDisplay').textContent = blockK;
+  updateTHDisplay(); updateCondBox();
+}
+
+function clampAll() {
+  var n = blocks.length;
+  var nFree = blocks.filter(function(b){ return !standardIds.has(b.id); }).length;
+  var nStd  = standardIds.size;
+  // k applies to free blocks only (standard always included)
+  if (blockK < 2) blockK = 2;
+  if (blockK > Math.max(nFree, 2)) blockK = Math.max(nFree, 2);
+  // if all blocks are standard, k can be 1 (but we need at least 1 free)
+  if (nFree < 1) blockK = 1; // edge case
+  // trigger: must be > blockK, max = nFree
+  if (triggerVal <= blockK) triggerVal = blockK + 1;
+  if (triggerVal > nFree) triggerVal = nFree;
+  if (triggerVal < blockK + 1) triggerVal = blockK + 1;
+  // hit: 1 <= hit <= blockK, < trigger
+  if (hitVal > blockK) hitVal = blockK;
+  if (hitVal < 1) hitVal = 1;
+  if (hitVal >= triggerVal) { hitVal = triggerVal - 1; if (hitVal < 1) hitVal = 1; }
+}
+
+function adjK(d) {
+  var nFree = blocks.filter(function(b){ return !standardIds.has(b.id); }).length;
+  var nk = blockK + d;
+  if (nk < 2 || nk > nFree) return;
+  blockK = nk;
+  if (triggerVal <= blockK) triggerVal = blockK + 1;
+  if (triggerVal > nFree) triggerVal = nFree;
+  if (hitVal > blockK) hitVal = blockK;
+  if (hitVal >= triggerVal) { hitVal = triggerVal - 1; if (hitVal < 1) hitVal = 1; }
+  document.getElementById('kDisplay').textContent = blockK;
+  updateTHDisplay(); updateCondBox();
+}
+function adjTrig(d) {
+  var nFree = blocks.filter(function(b){ return !standardIds.has(b.id); }).length;
+  var nt = triggerVal + d;
+  if (nt <= blockK || nt > nFree) return;
+  triggerVal = nt;
+  if (hitVal >= triggerVal) { hitVal = triggerVal - 1; if (hitVal < 1) hitVal = 1; }
+  updateTHDisplay(); updateCondBox();
+}
+function adjHit(d) {
+  var nh = hitVal + d;
+  if (nh < 1 || nh > blockK || nh >= triggerVal) return;
+  hitVal = nh;
+  updateTHDisplay(); updateCondBox();
+}
+function updateTHDisplay() {
+  document.getElementById('trigDisplay').textContent = triggerVal;
+  document.getElementById('hitDisplay').textContent = hitVal;
+  document.getElementById('trigLabel').textContent = triggerVal + ' (' + omL(triggerVal) + ')';
+  document.getElementById('hitLabel').textContent = hitVal + ' (' + omL(hitVal) + ')';
+}
+function omL(n) { return n === 1 ? '1 ομάδα' : n + ' ομάδες'; }
+
+function updateCondBox() {
+  var nFree = blocks.filter(function(b){ return !standardIds.has(b.id); }).length;
+  var nStd  = standardIds.size;
+  var lb = estimateLB(nFree, blockK, triggerVal, hitVal);
+  var isOver = lb > MAX_LINES;
+  var stdNums = 0;
+  blocks.forEach(function(b){ if (standardIds.has(b.id)) stdNums += b.numbers.length; });
+  var freeSizes = blocks.filter(function(b){ return !standardIds.has(b.id); })
+    .map(function(b){ return b.numbers.length; }).sort(function(a,b){ return b-a; });
+  var freeNums = 0;
+  for (var i = 0; i < blockK; i++) freeNums += (freeSizes[i] || 0);
+  var maxNums = stdNums + freeNums;
+  var sw = maxNums > 12 ? ' <span class="warn">⚠️ Στήλες μπορεί να ξεπεράσουν τα 12 νούμερα!</span>' : '';
+  var stdInfo = nStd > 0
+    ? 'Σταθερές (Σ): <b style="color:var(--gold)">'+nStd+'</b> → μπαίνουν σε κάθε στήλη<br>'
+    : '';
+  document.getElementById('condBox').innerHTML =
+    stdInfo+
+    'Κάθε στήλη = '+(nStd?'<b style="color:var(--gold)">'+nStd+' Σ</b> + ':'')+
+    '<b>'+blockK+'</b> ελεύθερες (έως <b>'+maxNums+'</b> νούμερα)<br>'+
+    'Αν κληρωθούν <b>'+triggerVal+'</b> από τις <b>'+nFree+'</b> ελεύθερες ομάδες,<br>'+
+    'εγγυόμαστε τουλάχιστον <b><span class="hl">'+hitVal+'</span></b> '+omL(hitVal)+' μαζί σε 1 στήλη.<br>'+
+    'Κατ. ορίου στηλών: <b>'+(isOver?'<span style="color:var(--red)">'+lb+'</span>':lb)+'</b>'+sw;
+}
+
+// ── COVERING MATH ──
+var _r = 0;
+function sRng(s) { _r = s >>> 0; }
+function nxt() {
+  _r |= 0; _r = _r + 0x6D2B79F5 | 0;
+  var t = Math.imul(_r ^ _r >>> 15, 1 | _r);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
+}
+function shuf(arr) {
+  var a = arr.slice();
+  for (var i = a.length-1; i > 0; i--) { var j = Math.floor(nxt()*(i+1)); var tmp=a[i]; a[i]=a[j]; a[j]=tmp; }
+  return a;
+}
+function comb(n, r) {
+  if (r > n || r < 0) return 0; if (r === 0 || r === n) return 1; if (r > n-r) r = n-r;
+  var c = 1; for (var i = 0; i < r; i++) c = c*(n-i)/(i+1); return Math.round(c);
+}
+function estimateLB(v, k, t, h) {
+  if (v <= 0 || k > v || t > v) return 0;
+  return Math.ceil(comb(v, t) / comb(t, h));
+}
+function combs(arr, r) {
+  var res = [], com = [];
+  function bt(s) {
+    if (com.length === r) { res.push(com.slice()); return; }
+    for (var i = s; i <= arr.length-(r-com.length); i++) { com.push(arr[i]); bt(i+1); com.pop(); }
+  }
+  bt(0); return res;
+}
+function iCnt(a, b) { var c = 0; for (var i = 0; i < a.length; i++) if (b.indexOf(a[i]) >= 0) c++; return c; }
+function validate(lines, pool, trig, hit) {
+  var ss = combs(pool, trig);
+  for (var i = 0; i < ss.length; i++) {
+    var ok = false;
+    for (var j = 0; j < lines.length; j++) { if (iCnt(lines[j], ss[i]) >= hit) { ok = true; break; } }
+    if (!ok) return false;
+  }
+  return true;
+}
+function buildLine(sub, pool, k, hit) {
+  var must = shuf(sub).slice(0, hit);
+  var rem = shuf(pool.filter(function(x){ return must.indexOf(x) < 0; }));
+  return must.concat(rem.slice(0, k-hit)).sort(function(a,b){ return a-b; });
+}
+function uniq(lines) {
+  var seen = {}, out = [];
+  for (var i = 0; i < lines.length; i++) { var k = lines[i].join(','); if (!seen[k]) { seen[k]=true; out.push(lines[i]); } }
+  return out;
+}
+function covScore(line, ss, hit) {
+  var s = 0; for (var i = 0; i < ss.length; i++) if (iCnt(line, ss[i]) >= hit) s++; return s;
+}
+function prune(lines, pool, trig, hit) {
+  var ch = true, cur = lines.slice();
+  while (ch) { ch = false; for (var i = cur.length-1; i >= 0; i--) { var t = cur.slice(0,i).concat(cur.slice(i+1)); if (validate(t,pool,trig,hit)) { cur=t; ch=true; } } }
+  return cur;
+}
+function genCover(pool, k, trig, hit) {
+  var unc = combs(pool, trig), lines = [], lp = 0;
+  while (unc.length && lines.length < MAX_LINES && lp < 4000) {
+    lp++;
+    var seed = unc[0], best = null, bsc = -1;
+    var tries = unc.length > 5000 ? 8 : unc.length > 1000 ? 12 : 18;
+    for (var t = 0; t < tries; t++) { var c = buildLine(seed, pool, k, hit); var sc = covScore(c, unc, hit); if (sc > bsc) { best=c; bsc=sc; } }
+    if (!best) break;
+    lines.push(best); lines = uniq(lines);
+    unc = unc.filter(function(s){ return !lines.some(function(l){ return iCnt(l,s) >= hit; }); });
+  }
+  var fx = 0;
+  while (unc.length && lines.length < MAX_LINES && fx < 4000) {
+    fx++; var nl = buildLine(unc[0], pool, k, hit);
+    lines.push(nl); lines = uniq(lines);
+    unc = unc.filter(function(s){ return !lines.some(function(l){ return iCnt(l,s) >= hit; }); });
+  }
+  if (!validate(lines, pool, trig, hit)) return null;
+  lines = prune(lines, pool, trig, hit);
+  if (!validate(lines, pool, trig, hit)) return null;
+  if (lines.length > MAX_LINES) return null;
+  return lines;
+}
+
+// ── WINNER / DRAW STATE ──
+var winnerMode  = false;
+var winnerNums  = new Set();
+var drawActive  = false;
+
+var PAYOUTS = {
+  1:{1:1.25},
+  2:{2:2.5,1:0.5},
+  3:{3:12.5,2:1.25},
+  4:{4:50,3:2,2:0.5},
+  5:{5:225,4:10,3:1},
+  6:{6:800,5:25,4:3.5,3:0.5},
+  7:{7:2500,6:50,5:10,4:1.5,3:0.5},
+  8:{8:7500,7:500,6:25,5:5,4:1},
+  9:{9:20000,8:2000,7:100,6:12.5,5:2.5,4:0.5},
+  10:{10:50000,9:5000,8:250,7:40,6:10,5:2},
+  11:{11:250000,10:7500,9:750,8:125,7:25,6:5,5:0.5},
+  12:{12:500000,11:12500,10:1250,9:500,8:75,7:12.5,6:2.5}
+};
+function getPayout(k, hits) {
+  if (!PAYOUTS[k]) return 0;
+  return PAYOUTS[k][hits] || 0;
+}
+
+function toggleMode(mode) {
+  if (mode === 'winner') {
+    if (winnerMode) {
+      clearWinner();
+    } else {
+      winnerMode = true;
+      document.getElementById('btnWinner').className = 'toggle-btn active-win';
+      document.getElementById('btnDraw').className   = drawActive ? 'toggle-btn active-draw' : 'toggle-btn';
+      document.getElementById('clearWinnerBtn').style.display = 'block';
+      syncWinnerGrid();
+    }
+  } else { // draw
+    if (!winnerMode) {
+      // must select winner first
+      winnerMode = true;
+      document.getElementById('btnWinner').className = 'toggle-btn active-win';
+      document.getElementById('clearWinnerBtn').style.display = 'block';
+      syncWinnerGrid();
+      alert('Επίλεξε πρώτα τα κληρωθέντα νούμερα (πάτα στο πλέγμα) και μετά πάτα ξανά ΔΙΑΛΟΓΗ.');
+      return;
+    }
+    drawActive = true;
+    document.getElementById('btnDraw').className = 'toggle-btn active-draw';
+    runDraw();
+  }
+}
+
+function syncWinnerGrid() {
+  // In winner mode, grid clicks pick drawn numbers instead of building blocks
+  for (var n = 1; n <= 80; n++) {
+    var el = document.getElementById('nc' + n);
+    if (!el) continue;
+    var ow = ownerOf(n);
+    var cls = 'nc';
+    if (ow) {
+      cls += ' in-block';
+      el.style.background  = ow.bg;
+      el.style.borderColor = ow.b;
+      el.style.color       = ow.t;
+    } else {
+      el.style.background  = '';
+      el.style.borderColor = '';
+      el.style.color       = '';
+    }
+    if (winnerNums.has(n)) cls += ' winner';
+    el.className = cls;
+  }
+}
+
+function toggleNumWinner(n) {
+  if (winnerNums.has(n)) winnerNums.delete(n);
+  else winnerNums.add(n);
+  syncWinnerGrid();
+  if (drawActive && currentLines) runDraw();
+}
+
+function clearWinner() {
+  winnerMode = false; drawActive = false; winnerNums.clear();
+  document.getElementById('btnWinner').className = 'toggle-btn';
+  document.getElementById('btnDraw').className   = 'toggle-btn';
+  document.getElementById('clearWinnerBtn').style.display = 'none';
+  refreshGrid();
+  // remove draw overlays
+  var badges = document.querySelectorAll('.draw-badge');
+  for (var i = 0; i < badges.length; i++) badges[i].remove();
+  var pays = document.querySelectorAll('.payout-badge');
+  for (var j = 0; j < pays.length; j++) pays[j].remove();
+  var balls = document.querySelectorAll('.ball.hit');
+  for (var k = 0; k < balls.length; k++) balls[k].classList.remove('hit');
+  var old = document.querySelector('.total-winnings');
+  if (old) old.remove();
+  var oldV = document.querySelector('.verified-box');
+  if (oldV) oldV.remove();
+}
+
+function runDraw() {
+  if (!currentLines) return;
+  if (winnerNums.size === 0) {
+    alert('Επίλεξε πρώτα τα κληρωθέντα νούμερα (πάτα ΝΙΚΗΤΡΙΑ ΣΤΗΛΗ).');
+    document.getElementById('btnDraw').className = 'toggle-btn';
+    drawActive = false;
+    return;
+  }
+  var wrap = document.getElementById('resultsWrap');
+  var cardEls = wrap.querySelectorAll('.res-card');
+  var cardData = [];
+
+  for (var ci = 0; ci < cardEls.length; ci++) {
+    var card = cardEls[ci];
+    var lineIdx = parseInt(card.getAttribute('data-line-idx'), 10);
+    if (isNaN(lineIdx)) lineIdx = ci;
+    var blockIndices = currentLines[lineIdx];
+    if (!blockIndices) continue;
+
+    // expand to actual numbers
+    var lineNums = [];
+    blockIndices.forEach(function(bi){ lineNums = lineNums.concat(blocks[bi].numbers); });
+    var k = lineNums.length;
+
+    var hits = lineNums.filter(function(n){ return winnerNums.has(n); }).length;
+
+    var head = card.querySelector('.rc-head');
+    if (head) {
+      var oldB = head.querySelector('.draw-badge');   if (oldB) oldB.remove();
+      var oldP = head.querySelector('.payout-badge'); if (oldP) oldP.remove();
+
+      var badge = document.createElement('div');
+      badge.className = hits === k ? 'draw-badge hit-full' : hits >= Math.ceil(k/2) ? 'draw-badge hit-good' : 'draw-badge hit-low';
+      badge.textContent = hits + '/' + k;
+      head.appendChild(badge);
+
+      var payout = getPayout(k, hits);
+      var payBadge = document.createElement('div');
+      if (payout > 0) {
+        payBadge.className = payout >= 1000 ? 'payout-badge big' : 'payout-badge win';
+        payBadge.textContent = payout >= 1000000 ? (payout/1000000).toFixed(1)+'M€'
+          : payout >= 1000 ? (payout/1000).toFixed(0)+'K€' : payout+'€';
+      } else {
+        payBadge.className = 'payout-badge nowin';
+        payBadge.textContent = '0€';
+      }
+      head.appendChild(payBadge);
+    }
+
+    var body = card.querySelector('.rc-body');
+    if (body) {
+      var ballEls = body.querySelectorAll('.ball');
+      for (var b = 0; b < ballEls.length; b++) {
+        var num = parseInt(ballEls[b].textContent, 10);
+        if (winnerNums.has(num)) ballEls[b].classList.add('hit');
+        else ballEls[b].classList.remove('hit');
+      }
+    }
+    cardData.push({el: card, hits: hits, k: k});
+  }
+
+  // total winnings
+  var totalWin = 0;
+  for (var ti = 0; ti < cardData.length; ti++) totalWin += getPayout(cardData[ti].k, cardData[ti].hits);
+  totalWin = Math.round(totalWin * 100) / 100;
+
+  var oldTotal = wrap.querySelector('.total-winnings');
+  if (oldTotal) oldTotal.remove();
+  var totalBar = document.createElement('div');
+  totalBar.className = 'total-winnings';
+  totalBar.innerHTML =
+    '<div class="total-winnings-label"><b>ΣΥΝΟΛΙΚΑ ΚΕΡΔΗ</b><br>'+
+    currentLines.length+' στήλες × 0.50€</div>'+
+    '<div class="total-winnings-amount">'+totalWin.toFixed(2)+'<small>€</small></div>';
+
+  // verified box: show all numbers across all blocks with hit highlight
+  var oldV = wrap.querySelector('.verified-box');
+  if (oldV) oldV.remove();
+  var allPoolNums = [];
+  blocks.forEach(function(bl){ allPoolNums = allPoolNums.concat(bl.numbers); });
+  allPoolNums.sort(function(a,b){return a-b;});
+  var hitPoolCount = allPoolNums.filter(function(n){ return winnerNums.has(n); }).length;
+  var ballsHtml = allPoolNums.map(function(pn){
+    var isHit = winnerNums.has(pn);
+    return '<div class="vball'+(isHit?' hit':'')+'">'+( pn<10?'0'+pn:''+pn)+'</div>';
+  }).join('');
+  var verifiedBox = document.createElement('div');
+  verifiedBox.className = 'verified-box';
+  verifiedBox.innerHTML =
+    '<div class="verified-title"><span>ΑΡΙΘΜΟΙ ΟΜΑΔΩΝ</span>'+
+    '<span class="verified-count">'+hitPoolCount+'/'+allPoolNums.length+'</span></div>'+
+    '<div class="verified-balls">'+ballsHtml+'</div>';
+
+  // sort cards by hits desc
+  cardData.sort(function(a,b){ return b.hits - a.hits; });
+  wrap.appendChild(totalBar);
+  wrap.appendChild(verifiedBox);
+  for (var di = 0; di < cardData.length; di++) wrap.appendChild(cardData[di].el);
+
+  // scroll to results
+  document.getElementById('resultsWrap').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ── GENERATE ──
+function generate() {
+  if (blocks.length < 2) return;
+  clampAll();
+  // reset winner/draw
+  winnerMode = false; drawActive = false; winnerNums.clear();
+  document.getElementById('btnWinner').className = 'toggle-btn';
+  document.getElementById('btnDraw').className   = 'toggle-btn';
+  document.getElementById('clearWinnerBtn').style.display = 'none';
+
+  var stdIndices  = blocks.map(function(b,i){ return standardIds.has(b.id) ? i : -1; }).filter(function(i){ return i >= 0; });
+  var freeIndices = blocks.map(function(b,i){ return standardIds.has(b.id) ? -1 : i; }).filter(function(i){ return i >= 0; });
+
+  var seed = blockK*1000000 + triggerVal*10000 + hitVal*100 + freeIndices.length;
+  var best = null;
+  for (var r = 0; r < 5; r++) {
+    sRng(seed + r);
+    var at = genCover(freeIndices, blockK, triggerVal, hitVal);
+    if (at && (!best || at.length < best.length)) best = at;
+  }
+  if (!best) {
+    document.getElementById('resultsWrap').innerHTML = '<div class="err-box">⚠️ Δεν βρέθηκε έγκυρο σύστημα. Δοκίμασε διαφορετικές τιμές.</div>';
+    return;
+  }
+  // prepend standard block indices to each line
+  var finalLines = best.map(function(line){ return stdIndices.concat(line); });
+  renderResults(finalLines);
+}
+
+function renderResults(lines) {
+  var cost = (lines.length * TICKET).toFixed(2);
+  var maxSz = 0;
+  lines.forEach(function(bi) {
+    var sz = bi.reduce(function(a,i){ return a + blocks[i].numbers.length; }, 0);
+    if (sz > maxSz) maxSz = sz;
+  });
+  var sw = maxSz > 12 ?
+    '<div style="background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.25);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--red);margin-bottom:14px;">⚠️ Κάποιες στήλες έχουν περισσότερους από 12 αριθμούς.</div>' : '';
+
+  var cards = '';
+  lines.forEach(function(blockIndices, idx) {
+    var usedBl = blockIndices.map(function(bi){ return blocks[bi]; });
+    var sz = usedBl.reduce(function(a,b){ return a + b.numbers.length; }, 0);
+    var chips = usedBl.map(function(b){
+      var isStd = standardIds.has(b.id);
+      return '<div class="rc-block-chip">'+(isStd?'<span style="font-size:9px;color:var(--gold);font-weight:700;margin-right:2px;">Σ</span>':'')+
+        '<div class="rc-block-dot" style="background:'+b.d+'"></div>'+
+        '<span class="rc-block-name">'+b.name+'</span></div>';
+    }).join('');
+    var balls = '';
+    usedBl.forEach(function(b) {
+      b.numbers.slice().sort(function(a,c){ return a-c; }).forEach(function(n) {
+        balls += '<div class="ball" style="background:'+b.bg+';border-color:'+b.b+';color:'+b.t+'">'+(n<10?'0'+n:''+n)+'</div>';
+      });
+    });
+    cards +=
+      '<div class="res-card" data-line-idx="'+idx+'" style="animation-delay:'+(idx*.03)+'s">'+
+        '<div class="rc-head">'+
+          '<div class="rc-idx">'+(idx+1)+'</div>'+
+          '<div class="rc-title">ΣΤΗΛΗ '+(idx+1)+'</div>'+
+          '<div class="rc-size">'+sz+' ΑΡ.</div>'+
+        '</div>'+
+        '<div class="rc-body">'+
+          '<div class="rc-blocks">'+chips+'</div>'+
+          '<div class="rc-balls">'+balls+'</div>'+
+        '</div>'+
+      '</div>';
+  });
+
+  document.getElementById('resultsWrap').innerHTML =
+    '<div class="res-header">'+
+      '<div class="res-title">ΑΠΟΤΕΛΕΣΜΑ</div>'+
+      '<div class="res-count">'+lines.length+' ΣΤΗΛΕΣ</div>'+
+    '</div>'+
+    '<div class="summary-grid">'+
+      '<div class="sg-item"><div class="sg-val">'+lines.length+'</div><div class="sg-key">Στήλες</div></div>'+
+      '<div class="sg-item"><div class="sg-val gold">'+triggerVal+'→'+hitVal+'/'+blockK+'</div><div class="sg-key">Εγγύηση</div></div>'+
+      '<div class="sg-item"><div class="sg-val blue">'+maxSz+'</div><div class="sg-key">Max νούμερα</div></div>'+
+      '<div class="sg-item"><div class="sg-val orange">'+cost+'€</div><div class="sg-key">Κόστος</div></div>'+
+    '</div>'+
+    '<div class="note-box">'+
+      'Επαληθευμένο: <b style="color:var(--green)">✅ YES</b><br>'+
+      (standardIds.size>0?'Σταθερές ομάδες (Σ) σε κάθε στήλη: <b style="color:var(--gold)">'+standardIds.size+'</b><br>':'')+
+      'αν κληρωθούν <b>'+triggerVal+'</b> ελεύθερες → εγγύηση <b>'+hitVal+'/'+blockK+'</b> σε 1 στήλη'+
+    '</div>'+
+    sw + cards;
+
+  document.getElementById('resultsWrap').scrollIntoView({behavior:'smooth', block:'start'});
+  currentLines = lines;
+  document.getElementById('qrBtnSticky').style.display = 'block';
+  document.getElementById('toggleBar').className = 'toggle-bar visible';
+}
+
+buildGrid(); renderBlocks(); updateUI();
+</script>
+
+<!-- STICKY QR BUTTON -->
+<div class="sticky-bottom">
+  <button class="qr-btn-sticky" id="qrBtnSticky" onclick="openQRModal()" style="display:none">
+    📱 ΔΗΜΙΟΥΡΓΙΑ QR ΔΕΛΤΙΩΝ
+  </button>
+</div>
+
+<!-- QR MODAL -->
+<div class="qr-modal" id="qrModal">
+  <div class="qr-modal-inner">
+    <div class="qr-modal-head">
+      <div class="qr-modal-title">📱 QR ΔΕΛΤΙΑ</div>
+      <button class="qr-close" onclick="closeQRModal()">✕</button>
+    </div>
+    <div class="qr-modal-body" id="qrModalBody"></div>
+  </div>
+</div>
+
+<script>
+// ── QR STATE ──
+var qrDrawsSel = [1];
+var qrMultSel  = [1];
+var qrBonus    = false;
+var qrPara1    = false;
+var currentLines = null; // set by renderResults
+
+function qrToggleVal(arr, val) {
+  var idx = arr.indexOf(val);
+  if (idx >= 0) { if (arr.length > 1) arr.splice(idx, 1); }
+  else arr.push(val);
+}
+
+function openQRModal() {
+  if (!currentLines) return;
+  qrDrawsSel = [1]; qrMultSel = [1]; qrBonus = false; qrPara1 = false;
+  document.getElementById('qrModal').className = 'qr-modal open';
+  document.body.style.overflow = 'hidden';
+  var body = document.getElementById('qrModalBody');
+  if (typeof QRCode === 'undefined') {
+    body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">Φόρτωση QR...</div>';
+    var script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    script.onload = function(){ renderQRModal(); };
+    script.onerror = function(){ body.innerHTML = '<div class="err-box">Αδύνατη δημιουργία QR</div>'; };
+    document.head.appendChild(script);
+  } else {
+    renderQRModal();
+  }
+}
+
+function closeQRModal() {
+  document.getElementById('qrModal').className = 'qr-modal';
+  document.body.style.overflow = '';
+}
+
+function renderQRModal() {
+  var body = document.getElementById('qrModalBody');
+  var lines = currentLines;
+  if (!lines || !lines.length) { body.innerHTML = '<div class="err-box">Αδύνατη δημιουργία QR</div>'; return; }
+
+  // expand block-index lines → actual numbers
+  var expandedLines = lines.map(function(blockIndices) {
+    var nums = [];
+    blockIndices.forEach(function(bi){ nums = nums.concat(blocks[bi].numbers); });
+    return nums.slice().sort(function(a,b){return a-b;});
+  });
+  var lineSize = expandedLines[0].length; // numbers per line
+
+  var DRAWS_OPTS = [1,2,3,4,5,10,20,50];
+  var MULT_OPTS  = [1,2,3,4,5,6,8,10,11,20,30];
+
+  var totalDraws = qrDrawsSel.reduce(function(s,v){return s+v;}, 0);
+  var totalMult  = qrMultSel.reduce(function(s,v){return s+v;}, 0);
+  var pricePerLine = 0.50 + (qrBonus ? 0.50 : 0) + (qrPara1 ? 0.50 : 0);
+  var costPerLine  = pricePerLine * totalDraws * totalMult;
+  var totalCost    = (expandedLines.length * costPerLine).toFixed(2);
+  var selDrawsLabel = qrDrawsSel.slice().sort(function(a,b){return a-b;}).join('+') + ' = ' + totalDraws + ' κλ.';
+  var selMultLabel  = qrMultSel.slice().sort(function(a,b){return a-b;}).join('+') + ' = ' + totalMult + 'x';
+  var baseCost = (expandedLines.length * pricePerLine * totalDraws).toFixed(2);
+  var breakdown = expandedLines.length + ' στήλες × ' + pricePerLine.toFixed(2) + '€' +
+    (qrBonus ? ' +BONUS' : '') + (qrPara1 ? ' +ΠΑΡΑ1' : '') +
+    ' × ' + totalDraws + ' κλ.' +
+    (totalMult > 1 ? ' = ' + baseCost + '€ × ' + totalMult + 'x' : '');
+
+  var drawBtns = DRAWS_OPTS.map(function(d){
+    var a = qrDrawsSel.indexOf(d) >= 0;
+    return '<div class="qr-chip'+(a?' active':'')+'" onclick="qrToggleVal(qrDrawsSel,'+d+');renderQRModal();">'+d+'</div>';
+  }).join('');
+  var multBtns = MULT_OPTS.map(function(m){
+    var a = qrMultSel.indexOf(m) >= 0;
+    return '<div class="qr-chip'+(a?' active':'')+'" onclick="qrToggleVal(qrMultSel,'+m+');renderQRModal();">'+m+'x</div>';
+  }).join('');
+
+  var groups = chunkArr(expandedLines, 6);
+
+  var html =
+    '<div class="qr-toolbar-card">'+
+      '<div class="qr-section-label">ΣΥΝΕΧΟΜΕΝΕΣ ΚΛΗΡΩΣΕΙΣ</div>'+
+      '<div class="qr-sel-summary" style="color:var(--gold)">'+selDrawsLabel+'</div>'+
+      '<div class="qr-chip-row">'+drawBtns+'</div>'+
+      '<div class="qr-section-label">ΠΟΛΛΑΠΛΑΣΙΑΣΤΗΣ</div>'+
+      '<div class="qr-sel-summary" style="color:var(--blue2)">'+selMultLabel+'</div>'+
+      '<div class="qr-chip-row">'+multBtns+'</div>'+
+      '<div class="qr-tog-row">'+
+        '<div class="qr-tog'+(qrBonus?' active-bonus':'')+'" onclick="qrBonus=!qrBonus;renderQRModal();">⭐ KINOBONUS'+(qrBonus?' ✓':'')+' </div>'+
+        '<div class="qr-tog'+(qrPara1?' active-para':'')+'" onclick="qrPara1=!qrPara1;renderQRModal();">1️⃣ ΚΙΝΟΠΑΡΑ1'+(qrPara1?' ✓':'')+' </div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="qr-cost-box" style="margin-bottom:16px;">'+
+      breakdown+'<br>'+
+      'Σύνολο: <span class="qr-cost-total">'+totalCost+'€</span>'+
+      ' &nbsp;·&nbsp; <span style="font-size:10px;color:var(--muted);">'+groups.length+' QR δελτί'+(groups.length===1?'ο':'α')+'</span>'+
+    '</div>';
+
+  body.innerHTML = html;
+
+  groups.forEach(function(group, g) {
+    var qrData = buildOpapPayload(group, lineSize, totalDraws, totalMult, qrBonus, qrPara1);
+    var startLine = g * 6 + 1;
+    var endLine   = Math.min((g+1)*6, expandedLines.length);
+    var lineRange = startLine === endLine ? 'Στήλη '+startLine : 'Στήλες '+startLine+'–'+endLine;
+
+    var linesHTML = group.map(function(nums, li) {
+      var numStr = nums.map(function(n){ return n<10?'0'+n:''+n; }).join(' · ');
+      return '<div class="qr-line-row">'+
+        '<div class="qr-line-idx">'+(startLine+li)+'</div>'+
+        '<div class="qr-line-nums">'+numStr+'</div>'+
+      '</div>';
+    }).join('');
+
+    var groupCost = (group.length * pricePerLine * totalDraws * totalMult).toFixed(2);
+
+    var card = document.createElement('div');
+    card.className = 'qr-ticket';
+    card.innerHTML =
+      '<div class="qr-ticket-head">'+
+        '<div class="qr-ticket-title">ΔΕΛΤΙΟ '+(g+1)+' / '+groups.length+'</div>'+
+      '</div>'+
+      '<div class="qr-ticket-sub">'+lineRange+' · '+lineSize+' αριθμοί/στήλη</div>'+
+      '<div class="qr-box" id="qr-wrap-'+g+'"></div>'+
+      linesHTML+
+      '<div class="qr-ticket-footer">'+
+        group.length+' στήλες × '+totalDraws+' κληρώσεις'+
+        (totalMult>1?' × '+totalMult+'x πολλ/στής':'')+
+        (qrBonus?' + BONUS':'')+(qrPara1?' + ΠΑΡΑ1':'')+
+        '<span class="qr-ticket-cost">'+groupCost+'€</span>'+
+      '</div>';
+    body.appendChild(card);
+
+    (function(gIdx, data){
+      try {
+        new QRCode(document.getElementById('qr-wrap-'+gIdx), {
+          text: data, width:220, height:220,
+          colorDark:'#000000', colorLight:'#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch(e) {
+        document.getElementById('qr-wrap-'+gIdx).innerHTML =
+          '<div style="font-size:11px;color:var(--red);padding:10px;">QR error: '+e.message+'</div>';
+      }
+    })(g, qrData);
+  });
+}
+
+function buildOpapPayload(lines, k, draws, mult, bonus, para1) {
+  if (!lines || !lines.length) return '';
+  draws = draws || 1; mult = mult || 1;
+  var parts = ['@ID,KINO@GM,1100@ORIGIN,0'];
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].slice().sort(function(a,b){return a-b;});
+    var nums = line.join(',');
+    var prefix = i === 0 ? '^' : '@';
+    parts.push(prefix + 'A,' + i + '@S,' + k + '@U,' + nums);
+  }
+  parts.push('^CD,' + draws);
+  return parts.join('');
+}
+
+function chunkArr(arr, size) {
+  var out = [];
+  for (var i = 0; i < arr.length; i += size) out.push(arr.slice(i, i+size));
+  return out;
+}
+</script>
+<!-- STATS OVERLAY -->
+<div id="spOverlay" style="display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;">
+  <div style="max-width:520px;margin:0 auto;padding:16px 16px 90px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:12px 0;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10;">
+      <div style="font-size:20px;font-weight:800;color:var(--gold);letter-spacing:2px;">ΣΤΑΤΙΣΤΙΚΑ KINO</div>
+      <button id="spClose" style="padding:8px 16px;background:#171d31;border:1px solid #2c3763;border-radius:12px;color:var(--muted2);font-size:13px;cursor:pointer;" onclick="spClose()">ΚΛΕΙΣΙΜΟ</button>
+    </div>
+    <div id="spContent"><div style="text-align:center;padding:40px;color:var(--muted2);">Φόρτωση...</div></div>
+  </div>
+  <button id="spBackTop" onclick="document.getElementById('spOverlay').scrollTo({top:0,behavior:'smooth'})"
+    style="display:none;position:fixed;bottom:28px;right:22px;z-index:510;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#b8800a,var(--gold));border:none;cursor:pointer;box-shadow:0 4px 18px rgba(232,184,75,.45);font-size:22px;color:#000;font-weight:900;line-height:1;">↑</button>
+</div>
+
+<script>
+var STATS_WINDOW=12,HOT_COLD_HOURS=3,HOT_COLD_MAX_DRAWS=50;
+
+function toggleStats(){
+  var ov=document.getElementById('spOverlay');
+  if(ov.style.display==='block'){spClose();}
+  else{ov.style.display='block';document.body.style.overflow='hidden';document.getElementById('liveBadgeText').textContent='CLOSE';spLoad();}
+}
+function spClose(){
+  document.getElementById('spOverlay').style.display='none';
+  document.body.style.overflow='';
+  document.getElementById('liveBadgeText').textContent='STATS';
+}
+function normalizeDraws(draws){
+  return(Array.isArray(draws)?draws:[]).filter(function(d){return d&&d.winningNumbers&&Array.isArray(d.winningNumbers.list)&&d.winningNumbers.list.length;})
+  .map(function(d){return{drawId:Number(d.drawId||0),drawTime:Number(d.drawTime||0),bonus:Number((d.winningNumbers&&d.winningNumbers.bonus&&d.winningNumbers.bonus[0])||d.bonus||0),winningNumbers:{list:d.winningNumbers.list.map(Number).sort(function(a,b){return a-b;})}};})
+  .sort(function(a,b){if(b.drawId!==a.drawId)return b.drawId-a.drawId;return b.drawTime-a.drawTime;});
+}
+function computeStats(draws,N){
+  var hist=normalizeDraws(draws).slice(0,N),freq={},streak={},delay={};
+  for(var n=1;n<=80;n++){freq[n]=0;streak[n]=0;delay[n]=hist.length;}
+  hist.forEach(function(d){d.winningNumbers.list.forEach(function(n){freq[n]++;});});
+  for(var n2=1;n2<=80;n2++){var s=0;for(var i=0;i<hist.length;i++){if(hist[i].winningNumbers.list.indexOf(n2)>=0)s++;else break;}streak[n2]=s;}
+  for(var n3=1;n3<=80;n3++){var found=false;for(var j=0;j<hist.length;j++){if(hist[j].winningNumbers.list.indexOf(n3)>=0){delay[n3]=j;found=true;break;}}if(!found)delay[n3]=hist.length;}
+  return{hist:hist,freq:freq,streak:streak,delay:delay};
+}
+function pad2(n){return n<10?'0'+n:''+n;}
+function fmtTime(ts){if(!ts)return'--:--';var d=new Date(ts);if(isNaN(d.getTime()))return'--:--';return pad2(d.getHours())+':'+pad2(d.getMinutes());}
+function grnPair(v,mx){var p=mx>0?v/mx:0;return['rgb('+Math.round(28+90*(1-p))+','+Math.round(95+130*(1-p))+','+Math.round(38+80*(1-p))+')','rgb('+Math.round(2+60*(1-p))+','+Math.max(110,Math.round(65+100*(1-p)))+','+Math.max(10,Math.round(28+70*(1-p)))+')'];}
+function redPair(v,mx){var p=mx>0?v/mx:0;return['rgb('+Math.round(255-70*(1-p))+','+Math.round(20+120*(1-p))+','+Math.round(20+70*(1-p))+')','rgb('+Math.round(165+70*p)+','+Math.round(65*(1-p))+','+Math.round(45*(1-p))+')'];}
+function mkBall(n,v,t,b){return'<div class="sp-bpair"><div class="sp-bball" style="background:radial-gradient(circle at 35% 30%,'+t+' 0%,'+t+' 34%,'+b+' 100%);">'+(n<10?'0'+n:n)+'</div><div class="sp-bval">'+v+'</div></div>';}
+function mkRow(lbl,nums,map,mx,type){
+  var h='<div style="margin-bottom:24px;"><div style="font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;display:flex;align-items:center;gap:8px;font-weight:800;">'+lbl+'<span style="flex:1;height:1px;background:#263155;display:block;"></span></div><div class="sp-stats-grid">';
+  nums.forEach(function(n){var c=type==='repeat'?grnPair(map[n],mx):redPair(map[n],mx);h+=mkBall(n,map[n],c[0],c[1]);});
+  return h+'</div></div>';
+}
+function mkHotCold(lbl,nums,map,cls){
+  var hd=cls==='fire'?'sp-hothead':'sp-coldhead',bg=cls==='fire'?'sp-hotbg':'sp-coldbg',bl=cls==='fire'?'sp-fireball':'sp-iceball',vl=cls==='fire'?'sp-fireval':'sp-iceval',gr=cls==='fire'?'sp-fire-grid':'sp-ice-grid',wr=cls==='fire'?'sp-hotwrap':'sp-coldwrap';
+  var h='<div style="margin-bottom:24px;"><div class="'+wr+'"><div class="'+hd+'">'+lbl+'</div><div class="'+bg+'"><div class="'+gr+'">';
+  nums.forEach(function(n){h+='<div class="sp-bpair"><div class="'+bl+'">'+(n<10?'0'+n:n)+'</div><div class="'+vl+'">'+map[n]+'</div></div>';});
+  return h+'</div></div></div></div>';
+}
+function mkKinoGrid(draw){
+  var hits={};draw.winningNumbers.list.forEach(function(n){hits[n]=true;});
+  var h='<div class="sp-hcard"><div class="sp-hmeta"><div class="sp-hid">ΚΛΗΡΩΣΗ #'+draw.drawId+'</div><div class="sp-htime">'+fmtTime(draw.drawTime)+'</div></div><div class="sp-kino-grid">';
+  for(var n=1;n<=80;n++){var c='sp-kcell';if(draw.bonus===n)c+=' bonus';else if(hits[n])c+=' hit';h+='<div class="'+c+'">'+pad2(n)+'</div>';}
+  h+='</div><div class="sp-klegend"><span><span class="sp-dot hit"></span>Κερδισμένα</span><span><span class="sp-dot bonus"></span>Bonus</span></div></div>';
+  return h;
+}
+function spRender(rawDraws){
+  var allHist=normalizeDraws(rawDraws),now=Date.now();
+  var hotColdHist=allHist.filter(function(d){return d.drawTime&&(now-d.drawTime)<=HOT_COLD_HOURS*60*60*1000;}).slice(0,HOT_COLD_MAX_DRAWS);
+  if(!hotColdHist.length)hotColdHist=allHist.slice(0,HOT_COLD_MAX_DRAWS);
+  var sRD=computeStats(allHist,allHist.length||STATS_WINDOW),sHC=computeStats(hotColdHist,hotColdHist.length||HOT_COLD_MAX_DRAWS);
+  var all=[],fr=sHC.freq,st=sRD.streak,dl=sRD.delay;
+  for(var x=1;x<=80;x++)all.push(x);
+  var hot=all.slice().sort(function(a,b){return fr[b]!==fr[a]?fr[b]-fr[a]:a-b;}).slice(0,10);
+  var cold=all.slice().sort(function(a,b){return fr[a]!==fr[b]?fr[a]-fr[b]:a-b;}).slice(0,10);
+  var del=all.slice().sort(function(a,b){return dl[b]!==dl[a]?dl[b]-dl[a]:a-b;}).slice(0,10);
+  var rep=all.filter(function(n){return st[n]>=2;}).sort(function(a,b){return st[b]!==st[a]?st[b]-st[a]:a-b;}).slice(0,10);
+  var maxD=del.length?(dl[del[0]]||1):1,maxR=rep.length?(st[rep[0]]||1):1;
+  var h='';
+  if(rep.length){h+='<div style="font-size:11px;color:var(--muted2);margin-bottom:14px;font-family:monospace;">ΕΠΑΝΑΛΗΨΕΙΣ &amp; ΚΑΘΥΣΤΕΡΗΣΕΙΣ</div>';h+=mkRow('ΕΠΑΝΑΛΗΨΕΙΣ',rep,st,maxR,'repeat');}
+  h+=mkRow('ΚΑΘΥΣΤΕΡΗΣΕΙΣ',del,dl,maxD,'delay');
+  h+='<div style="font-size:11px;color:var(--muted2);margin:-6px 0 14px;font-family:monospace;">HOT/COLD βάσει '+hotColdHist.length+' κληρώσεων (τελ. '+HOT_COLD_HOURS+'h)</div>';
+  h+=mkHotCold('HOT',hot,fr,'fire');
+  h+=mkHotCold('COLD',cold,fr,'ice');
+  h+='<div id="sp-draws-wrap" style="margin-bottom:24px;">';
+  h+='<div style="font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;display:flex;align-items:center;gap:8px;font-weight:800;">ΚΛΗΡΩΣΕΙΣ<span style="flex:1;height:1px;background:#263155;display:block;"></span></div>';
+  h+='<div style="text-align:right;margin-bottom:10px;"><button onclick="spToggleGrid()" id="sp-grid-btn" style="padding:5px 14px;background:#1a2240;border:1px solid #2a3a6a;border-radius:8px;color:var(--muted2);font-size:11px;cursor:pointer;letter-spacing:1px;">GRID</button></div>';
+  allHist.slice(0,STATS_WINDOW).forEach(function(d){h+=mkKinoGrid(d);});
+  if(allHist.length>STATS_WINDOW){h+='<div id="sp-loadmore-wrap" style="text-align:center;margin-top:14px;"><button onclick="spLoadMoreDraws()" style="padding:10px 28px;background:#131a2e;border:1px solid #2a3a6a;border-radius:12px;color:var(--muted2);font-size:12px;letter-spacing:2px;cursor:pointer;">ΠΕΡΙΣΣΟΤΕΡΑ</button></div>';}
+  h+='</div>';
+  document.getElementById('spContent').innerHTML=h;
+  window._spAllHist=allHist;window._spShown=STATS_WINDOW;
+}
+function spLoadMoreDraws(){
+  var allHist=window._spAllHist||[],shown=window._spShown||12,next=allHist.slice(shown,shown+12);
+  if(!next.length)return;
+  var wrap=document.getElementById('sp-draws-wrap');if(!wrap)return;
+  var bw=document.getElementById('sp-loadmore-wrap');if(bw)bw.remove();
+  next.forEach(function(d){wrap.insertAdjacentHTML('beforeend',mkKinoGrid(d));});
+  window._spShown=shown+next.length;
+  if(window._spShown<allHist.length){wrap.insertAdjacentHTML('beforeend','<div id="sp-loadmore-wrap" style="text-align:center;margin-top:14px;"><button onclick="spLoadMoreDraws()" style="padding:10px 28px;background:#131a2e;border:1px solid #2a3a6a;border-radius:12px;color:var(--muted2);font-size:12px;letter-spacing:2px;cursor:pointer;">ΠΕΡΙΣΣΟΤΕΡΑ</button></div>');}
+}
+function spToggleGrid(){
+  var wrap=document.getElementById('sp-draws-wrap'),btn=document.getElementById('sp-grid-btn');
+  if(!wrap||!btn)return;
+  var isGrid=wrap.classList.toggle('grid-view');
+  btn.style.borderColor=isGrid?'var(--gold)':'#2a3a6a';btn.style.color=isGrid?'var(--gold)':'var(--muted2)';
+}
+function spLoad(){
+  document.getElementById('spContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted2);">Φόρτωση στατιστικών...</div>';
+  var now=new Date(),f3=new Date(now.getTime()-3*60*60*1000);
+  function zp(n){return n<10?'0'+n:''+n;}
+  var fs=f3.getFullYear()+'-'+zp(f3.getMonth()+1)+'-'+zp(f3.getDate());
+  var ts=now.getFullYear()+'-'+zp(now.getMonth()+1)+'-'+zp(now.getDate());
+  var base='https://api.opap.gr/draws/v3.0/1100/draw-date/'+fs+'/'+ts+'?limit=100';
+  spTry([base,'https://corsproxy.io/?'+base,'https://api.allorigins.win/raw?url='+encodeURIComponent(base)],0);
+}
+function spTry(urls,i){
+  if(i>=urls.length){document.getElementById('spContent').innerHTML='<div style="color:#ff5a5a;padding:20px;">Αδύνατη φόρτωση. Δοκίμασε ξανά.</div>';return;}
+  fetch(urls[i]).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(data){
+    var d=Array.isArray(data)?data:(data&&data.content?data.content:[]);
+    if(!d.length)throw 0;
+    spRender(d);
+  }).catch(function(){spTry(urls,i+1);});
+}
+(function(){
+  var ov=document.getElementById('spOverlay'),btn=document.getElementById('spBackTop');
+  if(!ov||!btn)return;
+  ov.addEventListener('scroll',function(){btn.style.display=ov.scrollTop>200?'flex':'none';btn.style.alignItems='center';btn.style.justifyContent='center';});
+})();
+</script>
+</body>
+</html>
