@@ -1356,17 +1356,23 @@ function spToggleGrid(){
 }
 function spLoad(){
   document.getElementById('spContent').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted2);">Φόρτωση στατιστικών...</div>';
-  var now=new Date(),f3=new Date(now.getTime()-3*60*60*1000);
+  var now=new Date(), twoDaysAgo=new Date(now.getTime()-2*24*60*60*1000);
   function zp(n){return n<10?'0'+n:''+n;}
-  var fs=f3.getFullYear()+'-'+zp(f3.getMonth()+1)+'-'+zp(f3.getDate());
-  var ts=now.getFullYear()+'-'+zp(now.getMonth()+1)+'-'+zp(now.getDate());
-  var base='https://api.opap.gr/draws/v3.0/1100/draw-date/'+fs+'/'+ts+'?limit=100';
-  spTry([base,'https://corsproxy.io/?'+base,'https://api.allorigins.win/raw?url='+encodeURIComponent(base)],0);
+  function fmt(d){return d.getFullYear()+'-'+zp(d.getMonth()+1)+'-'+zp(d.getDate());}
+  var base='https://api.opap.gr/draws/v3.0/1100/draw-date/'+fmt(twoDaysAgo)+'/'+fmt(now)+'?limit=100';
+  var px='https://corsproxy.io/?';
+  var px2='https://api.allorigins.win/raw?url=';
+  spTry([px+base, px2+encodeURIComponent(base), base], 0);
 }
 function spTry(urls,i){
   if(i>=urls.length){document.getElementById('spContent').innerHTML='<div style="color:#ff5a5a;padding:20px;">Αδύνατη φόρτωση. Δοκίμασε ξανά.</div>';return;}
   fetch(urls[i]).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(data){
-    var d=Array.isArray(data)?data:(data&&data.content?data.content:[]);
+    var d;
+    if(Array.isArray(data)) d=data;
+    else if(data&&Array.isArray(data.content)) d=data.content;
+    else if(data&&typeof data.contents==='string'){
+      try{var p=JSON.parse(data.contents);d=Array.isArray(p)?p:(p&&Array.isArray(p.content)?p.content:[]);}catch(e){d=[];}
+    } else d=[];
     if(!d.length)throw 0;
     spRender(d);
   }).catch(function(){spTry(urls,i+1);});
