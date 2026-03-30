@@ -92,6 +92,9 @@ body::before{content:'';position:fixed;inset:0;
   cursor:pointer;transition:all .12s;color:var(--muted);user-select:none;}
 .nc:active{transform:scale(.9);}
 .nc.in-block{border-width:2px;}
+.nc.in-block.bs-dashed{border-style:dashed!important;}
+.nc.in-block.bs-dotted{border-style:dotted!important;}
+.nc.in-block.bs-solid{border-style:solid!important;}
 .nc.pending{background:rgba(232,184,75,.15);border-color:var(--gold);color:var(--gold2);}
 
 /* BLOCKS */
@@ -251,14 +254,17 @@ body::before{content:'';position:fixed;inset:0;
 .draw-row-ball.bonus-ball{border-color:var(--red)!important;color:var(--red)!important;box-shadow:0 0 0 1px var(--red);}
 
 /* BONUS number on grid */
-.nc.bonus-num::after{content:'';position:absolute;inset:-3px;border-radius:8px;
-  border:2.5px solid var(--red);background:rgba(255,90,90,.08);pointer-events:none;}
+.nc.bonus-num{background:linear-gradient(135deg,#c51717,#ff3333)!important;border-color:#ff6d6d!important;color:#fff!important;box-shadow:0 0 10px rgba(255,90,90,.5)!important;position:relative;}
+.nc.bonus-num::after{content:'';position:absolute;inset:-3px;border-radius:8px;border:2px solid #ff6d6d;pointer-events:none;}
 .nc.winner{position:relative;}
 .nc.winner::after{content:'';position:absolute;inset:-3px;border-radius:8px;
   border:2.5px solid #ffffff;
   background:rgba(255,255,255,.08);
   box-shadow:0 0 8px rgba(255,255,255,.6), 0 0 16px rgba(255,255,255,.25);
   pointer-events:none;}
+/* Abs-grid winner — πολύ έντονο glow */
+.nc.abs-winner{position:relative;outline:3px solid #fff;outline-offset:2px;z-index:2;}
+.nc.abs-winner::after{content:'';position:absolute;inset:-5px;border-radius:9px;border:3px solid rgba(255,255,255,.9);pointer-events:none;}
 
 /* DRAW BADGES */
 .draw-badge{font-family:'Source Code Pro',monospace;font-size:11px;font-weight:600;
@@ -462,18 +468,39 @@ body::before{content:'';position:fixed;inset:0;
 </div>
 
 <script>
-// 10 STRICT UNIQUE COLORS
+// 30 DISTINCT COLORS + BORDER STYLES
+// bs = border style for grid cell, bw = border width
 var BC = [
-  {bg:'rgba(167,139,250,.18)',b:'#a78bfa',d:'#a78bfa',t:'#c4b5fd',n:'Μωβ'},
-  {bg:'rgba(74,158,255,.18)', b:'#4a9eff',d:'#4a9eff',t:'#7bbcff',n:'Μπλε'},
-  {bg:'rgba(62,207,142,.18)', b:'#3ecf8e',d:'#3ecf8e',t:'#6ee7b7',n:'Πράσινο'},
-  {bg:'rgba(255,90,90,.18)',  b:'#ff5a5a',d:'#ff5a5a',t:'#ff9090',n:'Κόκκινο'},
-  {bg:'rgba(232,184,75,.18)', b:'#e8b84b',d:'#e8b84b',t:'#f5d080',n:'Χρυσό'},
-  {bg:'rgba(251,146,60,.18)', b:'#fb923c',d:'#fb923c',t:'#fdba74',n:'Πορτοκαλί'},
-  {bg:'rgba(56,189,248,.18)', b:'#38bdf8',d:'#38bdf8',t:'#7dd3fc',n:'Γαλάζιο'},
-  {bg:'rgba(244,114,182,.18)',b:'#f472b6',d:'#f472b6',t:'#f9a8d4',n:'Ροζ'},
-  {bg:'rgba(52,211,153,.18)', b:'#34d399',d:'#34d399',t:'#a7f3d0',n:'Βεραμάν'},
-  {bg:'rgba(250,204,21,.18)', b:'#facc15',d:'#facc15',t:'#fde68a',n:'Κίτρινο'},
+  {bg:'rgba(167,139,250,.22)',b:'#a78bfa',d:'#a78bfa',t:'#e0d4ff',n:'Μωβ',       bs:'solid', bw:'2px'},
+  {bg:'rgba(74,158,255,.22)', b:'#4a9eff',d:'#4a9eff',t:'#bde0ff',n:'Μπλε',      bs:'dashed',bw:'2px'},
+  {bg:'rgba(62,207,142,.22)', b:'#3ecf8e',d:'#3ecf8e',t:'#a7f3d0',n:'Πράσινο',   bs:'solid', bw:'3px'},
+  {bg:'rgba(255,75,75,.22)',  b:'#ff4b4b',d:'#ff4b4b',t:'#ffb3b3',n:'Κόκκινο',   bs:'dashed',bw:'3px'},
+  {bg:'rgba(232,184,75,.22)', b:'#e8b84b',d:'#e8b84b',t:'#fff0b3',n:'Χρυσό',     bs:'solid', bw:'2px'},
+  {bg:'rgba(251,100,30,.22)', b:'#fb641e',d:'#fb641e',t:'#ffc09f',n:'Πορτοκαλί', bs:'dotted',bw:'3px'},
+  {bg:'rgba(20,220,230,.22)', b:'#14dce6',d:'#14dce6',t:'#a0f8ff',n:'Κυανό',     bs:'solid', bw:'2px'},
+  {bg:'rgba(240,60,200,.22)', b:'#f03cc8',d:'#f03cc8',t:'#ffb3f0',n:'Φούξια',    bs:'dashed',bw:'2px'},
+  {bg:'rgba(140,255,50,.22)', b:'#8cff32',d:'#8cff32',t:'#d4ffaa',n:'Lime',       bs:'dotted',bw:'3px'},
+  {bg:'rgba(220,220,220,.18)',b:'#dcdcdc',d:'#dcdcdc',t:'#ffffff',n:'Ασημί',      bs:'solid', bw:'2px'},
+  {bg:'rgba(255,140,200,.22)',b:'#ff8cc8',d:'#ff8cc8',t:'#ffe0f0',n:'Ροζ',        bs:'solid', bw:'3px'},
+  {bg:'rgba(80,200,255,.22)', b:'#50c8ff',d:'#50c8ff',t:'#c0eeff',n:'Γαλάζιο',   bs:'dashed',bw:'3px'},
+  {bg:'rgba(255,200,50,.22)', b:'#ffc832',d:'#ffc832',t:'#fff3b3',n:'Κίτρινο',    bs:'dotted',bw:'2px'},
+  {bg:'rgba(180,80,255,.22)', b:'#b450ff',d:'#b450ff',t:'#e8c0ff',n:'Βιολετί',   bs:'solid', bw:'2px'},
+  {bg:'rgba(50,255,180,.22)', b:'#32ffb4',d:'#32ffb4',t:'#aaffe6',n:'Βεραμάν',   bs:'dashed',bw:'2px'},
+  {bg:'rgba(255,50,130,.22)', b:'#ff3282',d:'#ff3282',t:'#ffaace',n:'Κραμπουαζί',bs:'dotted',bw:'3px'},
+  {bg:'rgba(50,130,255,.22)', b:'#3282ff',d:'#3282ff',t:'#aaceff',n:'Cobalt',     bs:'solid', bw:'3px'},
+  {bg:'rgba(255,165,0,.22)',  b:'#ffa500',d:'#ffa500',t:'#ffe0a0',n:'Amber',      bs:'dashed',bw:'2px'},
+  {bg:'rgba(0,220,150,.22)',  b:'#00dc96',d:'#00dc96',t:'#a0ffe0',n:'Emerald',    bs:'solid', bw:'2px'},
+  {bg:'rgba(255,80,180,.22)', b:'#ff50b4',d:'#ff50b4',t:'#ffb3e6',n:'Magenta',   bs:'dotted',bw:'2px'},
+  {bg:'rgba(100,200,100,.22)',b:'#64c864',d:'#64c864',t:'#c8ffc8',n:'Σαλάτι',    bs:'solid', bw:'3px'},
+  {bg:'rgba(200,100,50,.22)', b:'#c86432',d:'#c86432',t:'#ffcaaa',n:'Καφέ',      bs:'dashed',bw:'3px'},
+  {bg:'rgba(50,200,220,.22)', b:'#32c8dc',d:'#32c8dc',t:'#aaf0ff',n:'Τιρκουάζ',  bs:'dotted',bw:'2px'},
+  {bg:'rgba(180,160,255,.22)',b:'#b4a0ff',d:'#b4a0ff',t:'#e8e0ff',n:'Λεβάντα',   bs:'solid', bw:'2px'},
+  {bg:'rgba(255,120,120,.22)',b:'#ff7878',d:'#ff7878',t:'#ffe0e0',n:'Σολομός',   bs:'dashed',bw:'2px'},
+  {bg:'rgba(80,255,220,.22)', b:'#50ffdc',d:'#50ffdc',t:'#c0fff5',n:'Teal',       bs:'dotted',bw:'3px'},
+  {bg:'rgba(255,200,200,.22)',b:'#ffc8c8',d:'#ffc8c8',t:'#fff0f0',n:'Peach',      bs:'solid', bw:'2px'},
+  {bg:'rgba(120,80,255,.22)', b:'#7850ff',d:'#7850ff',t:'#d0c0ff',n:'Indigo',     bs:'dashed',bw:'3px'},
+  {bg:'rgba(200,255,100,.22)',b:'#c8ff64',d:'#c8ff64',t:'#f0ffc8',n:'Chartreuse', bs:'dotted',bw:'2px'},
+  {bg:'rgba(255,50,50,.22)',  b:'#ff3232',d:'#ff3232',t:'#ffb0b0',n:'Κόκκινο2',  bs:'solid', bw:'3px'},
 ];
 
 var MAX_LINES = 300, TICKET = 0.50;
@@ -523,8 +550,13 @@ function refreshGrid() {
     var el = document.getElementById('nc'+n); if (!el) continue;
     var ow = ownerOf(n);
     if (ow) {
-      el.className = 'nc in-block';
-      el.style.background = ow.bg; el.style.borderColor = ow.b; el.style.color = ow.t;
+      el.className = 'nc in-block bs-' + (ow.bs||'solid');
+      el.style.background  = ow.bg;
+      el.style.borderColor = ow.b;
+      el.style.borderWidth = '3px';
+      el.style.borderStyle = ow.bs||'solid';
+      el.style.color       = ow.t;
+      el.style.fontWeight  = '800';
     } else if (pendingNums.has(n)) {
       el.className = 'nc pending';
       el.style.background = ''; el.style.borderColor = ''; el.style.color = '';
@@ -551,7 +583,7 @@ function confirmBlock() {
   var nums = Array.from(pendingNums).sort(function(a,b){return a-b;});
   blockCounter++;
   var c = BC[blocks.length % BC.length];
-  blocks.push({id:blockCounter, name:'ΟΜΑΔΑ '+blockCounter, numbers:nums, bg:c.bg, b:c.b, d:c.d, t:c.t, n:c.n});
+  blocks.push({id:blockCounter, name:'ΟΜΑΔΑ '+blockCounter, numbers:nums, bg:c.bg, b:c.b, d:c.d, t:c.t, n:c.n, bs:c.bs||'solid', bw:c.bw||'2px'});
   pendingNums.clear();
   refreshGrid(); refreshPendingBar(); renderBlocks(); updateUI();
 }
@@ -559,7 +591,7 @@ function cancelPending() { pendingNums.clear(); refreshGrid(); refreshPendingBar
 function deleteBlock(id) {
   blocks = blocks.filter(function(b){ return b.id !== id; });
   // re-assign colors strictly
-  blocks.forEach(function(bl,i){ var c=BC[i%BC.length]; bl.bg=c.bg; bl.b=c.b; bl.d=c.d; bl.t=c.t; bl.n=c.n; });
+  blocks.forEach(function(bl,i){ var c=BC[i%BC.length]; bl.bg=c.bg; bl.b=c.b; bl.d=c.d; bl.t=c.t; bl.n=c.n; bl.bs=c.bs||'solid'; bl.bw=c.bw||'2px'; });
   refreshGrid(); renderBlocks(); updateUI();
   document.getElementById('resultsWrap').innerHTML = '';
   currentLines = null;
@@ -586,13 +618,13 @@ function renderBlocks() {
     var card = document.createElement('div');
     card.className = 'block-card' + (isStd ? ' is-standard' : '');
     var ballsHTML = bl.numbers.map(function(n) {
-      return '<div class="block-ball" style="background:'+bl.bg+';border-color:'+bl.b+';color:'+bl.t+'">'+(n<10?'0'+n:''+n)+'</div>';
+      return '<div class="block-ball" style="background:'+bl.bg+';border-color:'+bl.b+';border-style:'+(bl.bs||'solid')+';border-width:'+(bl.bw||'2px')+';color:'+bl.t+';font-weight:800;">'+(n<10?'0'+n:''+n)+'</div>';
     }).join('');
     var stdLabel = isStd ? '🔒' : 'Σ';
     var stdTitle = isStd ? 'Σταθερή (κλειδωμένη) — κλικ για ξεκλείδωμα' : 'Ορισμός ως Σταθερή';
     card.innerHTML =
       '<div class="block-head">'+
-        '<div class="block-badge" style="background:'+bl.bg+';color:'+bl.t+';border:2px solid '+bl.b+'">'+bl.id+'</div>'+
+        '<div class="block-badge" style="background:'+bl.bg+';color:'+bl.t+';border:'+(bl.bw||'2px')+' '+(bl.bs||'solid')+' '+bl.b+'">'+bl.id+'</div>'+
         '<div class="block-name" style="color:'+bl.t+'">'+bl.name+' <span style="font-size:9px;opacity:.6">('+bl.n+')</span>'+
           (isStd ? ' <span style="font-size:9px;color:var(--gold);font-weight:700;">ΣΤΑΘΕΡΗ</span>' : '')+
         '</div>'+
@@ -931,6 +963,72 @@ function renderDrawsModal(draws) {
   body.innerHTML = batchHtml + html;
 }
 
+function toggleAbsDraw(btn) {
+  var drawId = btn.getAttribute('data-drawid');
+  var gridId = btn.getAttribute('data-gridid');
+  var numsRaw = btn.getAttribute('data-nums');
+  var bonus = parseInt(btn.getAttribute('data-bonus')||'0', 10);
+  var nums = numsRaw ? JSON.parse(numsRaw) : [];
+  var btnRow = btn.parentElement;
+  var gridDiv = gridId ? document.getElementById(gridId) : btnRow.nextElementSibling;
+  if (!gridDiv) return;
+  if (gridDiv.style.display !== 'none' && gridDiv.getAttribute('data-active-draw') === String(drawId)) {
+    gridDiv.style.display = 'none';
+    gridDiv.removeAttribute('data-active-draw');
+    btn.style.opacity = '1';
+    btn.style.outline = 'none';
+    return;
+  }
+  var siblings = btnRow.querySelectorAll('button[data-drawid]');
+  for (var i=0;i<siblings.length;i++){
+    siblings[i].style.opacity='0.7';
+    siblings[i].style.outline='none';
+  }
+  btn.style.opacity='1';
+  btn.style.outline='2px solid currentColor';
+  btn.style.outlineOffset='2px';
+  gridDiv.setAttribute('data-active-draw', String(drawId));
+  gridDiv.style.display='block';
+  gridDiv.innerHTML = renderAbsGrid(nums, bonus);
+}
+
+function renderAbsGrid(winNums, bonus) {
+  var winSet={};
+  if (winNums) winNums.forEach(function(n){ winSet[n]=true; });
+
+  var cells='';
+  for (var n=1;n<=80;n++){
+    var ow=ownerOf(n), isWin=winSet[n], isBonus=(n===bonus);
+    var cls='nc';
+    var extraStyle='pointer-events:none;';
+
+    // Bonus: κόκκινο
+    if (isBonus) {
+      cls+=' bonus-num';
+    // Κληρωθέν: χρυσό
+    } else if (isWin) {
+      extraStyle+='background:linear-gradient(135deg,#b8860b,var(--gold));border-color:var(--gold);color:#000;box-shadow:0 2px 8px rgba(232,184,75,.3);';
+    }
+
+    // Αριθμοί συστήματος: περίγραμμα χρώματος ομάδας μόνο
+    if (ow) {
+      extraStyle+='border-color:'+ow.b+';border-style:'+(ow.bs||'solid')+';border-width:3px;';
+    }
+
+    cells+='<div class="'+cls+'" style="'+extraStyle+'">'+(n<10?'0'+n:''+n)+'</div>';
+  }
+
+  var legWin='<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--muted2);">'+
+    '<span style="width:14px;height:14px;border-radius:3px;background:linear-gradient(135deg,#b8860b,var(--gold));display:inline-block;"></span>Κληρωθέν νούμερο</span>';
+  var legBonus='<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--muted2);">'+
+    '<span style="width:14px;height:14px;border-radius:3px;background:linear-gradient(135deg,#c51717,#ff3333);display:inline-block;"></span>BONUS</span>';
+  var legOurs='<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--muted2);">'+
+    '<span style="width:14px;height:14px;border-radius:3px;border:3px solid #fff;display:inline-block;"></span>Δικός μας συνδυασμός</span>';
+
+  return '<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-bottom:8px;">'+cells+'</div>'+
+    '<div style="display:flex;gap:14px;flex-wrap:wrap;padding-top:4px;">'+legWin+legBonus+legOurs+'</div>';
+}
+
 function runBatchDraw() {
   if (!currentLines) {
     alert('Δημιούργησε πρώτα σύστημα!');
@@ -999,10 +1097,12 @@ function runBatchDraw() {
           totalWinThisDraw += payout;
           if (payout > 0) {
             var key = hits + '/' + k;
-            if (!hitBreakdown[key]) hitBreakdown[key] = {count:0, totalPayout:0, absoluteDrawIds:[]};
+            if (!hitBreakdown[key]) hitBreakdown[key] = {count:0, totalPayout:0, absoluteDrawIds:[], highPayDraws:[]};
             hitBreakdown[key].count += 1;
             hitBreakdown[key].totalPayout += payout;
-            if (hits === k) hitBreakdown[key].absoluteDrawIds.push(draw.drawId);
+            var dObj_={id:draw.drawId,nums:draw.winningNumbers.list,bonus:draw.bonus||0};
+            if (hits === k) hitBreakdown[key].absoluteDrawIds.push(dObj_);
+            else if (payout > 499) hitBreakdown[key].highPayDraws.push(dObj_);
           }
         });
 
@@ -1021,10 +1121,7 @@ function runBatchDraw() {
       // Set batch flag BEFORE selectDraw so runDraw knows it's batch
       batchModeActive = true;
 
-      closeDrawsModal();
-      selectDraw(bestDraw.drawId, bestDraw.winningNumbers.list, bestDraw.bonus || 0, true);
-
-      // Store batch data globally — runDraw() will inject the boxes synchronously
+      // Store batch data BEFORE selectDraw — runDraw() reads it synchronously
       _batchData = {
         drawCount: draws.length,
         aggregateWin: aggregateWin,
@@ -1032,6 +1129,9 @@ function runBatchDraw() {
         bestDrawId: bestDraw.drawId,
         hitBreakdown: hitBreakdown
       };
+
+      closeDrawsModal();
+      selectDraw(bestDraw.drawId, bestDraw.winningNumbers.list, bestDraw.bonus || 0, true);
 
       if (btn) { btn.textContent = '⚡ ΕΚΚΙΝΗΣΗ'; btn.disabled = false; }
     })
@@ -1061,7 +1161,7 @@ function selectDraw(drawId, nums, bonus, fromBatch) {
   syncWinnerGridWithBonus();
   drawActive = true;
   document.getElementById('btnDraw').className = 'toggle-btn active-draw';
-  if (currentLines) runDraw();
+  if (currentLines) { requestAnimationFrame(function(){ runDraw(); }); }
 }
 
 function syncWinnerGrid() { syncWinnerGridWithBonus(); }
@@ -1073,16 +1173,62 @@ function syncWinnerGridWithBonus() {
     var ow = ownerOf(n);
     var cls = 'nc';
     if (ow) {
-      cls += ' in-block';
-      el.style.background  = ow.bg;
-      el.style.borderColor = ow.b;
-      el.style.color       = ow.t;
+      cls += ' in-block bs-' + (ow.bs||'solid');
+      var isWin = winnerNums.has(n);
+      var isBonus = (n === currentBonus);
+      if (isBonus) {
+        // κόκκινο — bonus-num CSS το κάνει
+        el.style.background  = '';
+        el.style.borderColor = ow.b;
+        el.style.borderWidth = '3px';
+        el.style.borderStyle = ow.bs||'solid';
+        el.style.color       = '';
+        el.style.fontWeight  = '800';
+      } else if (isWin) {
+        // κιτρινίζει εσωτερικά, περίγραμμα ομάδας
+        el.style.background  = 'linear-gradient(135deg,#b8860b,var(--gold))';
+        el.style.borderColor = ow.b;
+        el.style.borderWidth = '3px';
+        el.style.borderStyle = ow.bs||'solid';
+        el.style.color       = '#000';
+        el.style.fontWeight  = '800';
+      } else {
+        // μόνο περίγραμμα, σκούρο φόντο
+        el.style.background  = 'transparent';
+        el.style.borderColor = ow.b;
+        el.style.borderWidth = '3px';
+        el.style.borderStyle = ow.bs||'solid';
+        el.style.color       = ow.t;
+        el.style.fontWeight  = '800';
+      }
     } else {
-      el.style.background  = '';
-      el.style.borderColor = '';
-      el.style.color       = '';
+      // Εκτός ομάδας
+      var isWinX = winnerNums.has(n);
+      var isBonusX = (n === currentBonus);
+      if (isBonusX) {
+        el.style.background  = '';
+        el.style.borderColor = '';
+        el.style.borderWidth = '';
+        el.style.borderStyle = '';
+        el.style.color       = '';
+        el.style.fontWeight  = '';
+      } else if (isWinX) {
+        // Κληρωθέν εκτός ομάδας: χρυσό φόντο
+        el.style.background  = 'linear-gradient(135deg,#b8860b,var(--gold))';
+        el.style.borderColor = 'var(--gold)';
+        el.style.borderWidth = '2px';
+        el.style.borderStyle = 'solid';
+        el.style.color       = '#000';
+        el.style.fontWeight  = '800';
+      } else {
+        el.style.background  = '';
+        el.style.borderColor = '';
+        el.style.borderWidth = '';
+        el.style.borderStyle = '';
+        el.style.color       = '';
+        el.style.fontWeight  = '';
+      }
     }
-    if (winnerNums.has(n)) cls += ' winner';
     if (n === currentBonus) cls += ' bonus-num';
     el.className = cls;
   }
@@ -1262,11 +1408,32 @@ function runDraw() {
         var keyClr = isAbs ? 'var(--green)' : h >= Math.ceil(k2*0.7) ? 'var(--blue2)' : 'var(--muted2)';
         var tp = Math.round(entry.totalPayout * 100) / 100;
         var absRow = '';
-        if (isAbs && entry.absoluteDrawIds.length > 0) {
-          var chips = entry.absoluteDrawIds.map(function(id){
-            return '<span style="display:inline-block;background:rgba(232,184,75,.12);border:1px solid rgba(232,184,75,.3);border-radius:6px;padding:2px 8px;font-family:Source Code Pro,monospace;font-size:10px;color:var(--gold);white-space:nowrap;">#'+id+'</span>';
-          }).join('');
-          absRow = '<div style="padding:4px 14px 10px 14px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;"><span style="font-size:10px;color:var(--muted2);margin-right:2px;">🏆</span>'+chips+'</div>';
+        var hasChips_=(entry.absoluteDrawIds&&entry.absoluteDrawIds.length>0)||(entry.highPayDraws&&entry.highPayDraws.length>0);
+        if (hasChips_){
+          var gridId_='abs-grid-'+key.replace('/','_');
+          var chips_='';
+          if (entry.absoluteDrawIds&&entry.absoluteDrawIds.length>0){
+            chips_+=entry.absoluteDrawIds.map(function(drawObj){
+              var did=drawObj.id||drawObj;
+              var numsJ=JSON.stringify(drawObj.nums||[]);
+              var bon=drawObj.bonus||0;
+              return '<button onclick="toggleAbsDraw(this)" '+
+                'data-drawid="'+did+'" data-gridid="'+gridId_+'" data-nums=\''+numsJ.replace(/\'/g,"&apos;")+'\'  data-bonus="'+bon+'" '+
+                'style="display:inline-flex;align-items:center;gap:4px;background:rgba(232,184,75,.12);border:1px solid rgba(232,184,75,.35);border-radius:8px;padding:4px 10px;font-family:Source Code Pro,monospace;font-size:11px;color:var(--gold);white-space:nowrap;cursor:pointer;transition:all .15s;">🏆 #'+did+'</button>';
+            }).join('');
+          }
+          if (entry.highPayDraws&&entry.highPayDraws.length>0){
+            chips_+=entry.highPayDraws.map(function(drawObj){
+              var did=drawObj.id||drawObj;
+              var numsJ=JSON.stringify(drawObj.nums||[]);
+              var bon=drawObj.bonus||0;
+              return '<button onclick="toggleAbsDraw(this)" '+
+                'data-drawid="'+did+'" data-gridid="'+gridId_+'" data-nums=\''+numsJ.replace(/\'/g,"&apos;")+'\'  data-bonus="'+bon+'" '+
+                'style="display:inline-flex;align-items:center;gap:4px;background:rgba(74,158,255,.12);border:1px solid rgba(74,158,255,.4);border-radius:8px;padding:4px 10px;font-family:Source Code Pro,monospace;font-size:11px;color:var(--blue2);white-space:nowrap;cursor:pointer;transition:all .15s;">⭐ #'+did+'</button>';
+            }).join('');
+          }
+          absRow = '<div style="padding:4px 14px 8px 14px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;">'+chips_+'</div>'+
+            '<div id="'+gridId_+'" style="display:none;padding:0 14px 12px 14px;"></div>';
         }
         var mainRow_ =
           '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:12px 14px '+(absRow?'4px':'12px')+' 14px;">'+
@@ -1410,6 +1577,13 @@ buildGrid(); renderBlocks(); updateUI();
 </script>
 
 <!-- STICKY QR BUTTON -->
+<!-- SCROLL TO TOP -->
+<button id="mainBackTop" onclick="window.scrollTo({top:0,behavior:'smooth'})"
+  style="display:none;position:fixed;bottom:90px;right:16px;z-index:200;width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,#6d28d9,var(--purple));border:none;cursor:pointer;
+  box-shadow:0 4px 16px rgba(167,139,250,.45);font-size:20px;color:#fff;font-weight:900;
+  align-items:center;justify-content:center;">↑</button>
+
 <div class="sticky-bottom">
   <button class="qr-btn-sticky" id="qrBtnSticky" onclick="openQRModal()" style="display:none">
     📱 ΔΗΜΙΟΥΡΓΙΑ QR ΔΕΛΤΙΩΝ
@@ -1778,6 +1952,15 @@ function spExtractDrawArray(data){
   var ov=document.getElementById('spOverlay'),btn=document.getElementById('spBackTop');
   if(!ov||!btn)return;
   ov.addEventListener('scroll',function(){btn.style.display=ov.scrollTop>200?'flex':'none';btn.style.alignItems='center';btn.style.justifyContent='center';});
+})();
+(function(){
+  var btn=document.getElementById('mainBackTop');
+  if(!btn)return;
+  window.addEventListener('scroll',function(){
+    btn.style.display=window.scrollY>300?'flex':'none';
+    btn.style.alignItems='center';
+    btn.style.justifyContent='center';
+  });
 })();
 </script>
 </body>
