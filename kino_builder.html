@@ -226,7 +226,32 @@ body::before{content:'';position:fixed;inset:0;
   border-radius:10px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;
   color:var(--green);cursor:pointer;margin-bottom:10px;display:none;}
 
-/* WINNER GRID OVERLAY */
+/* DRAWS PICKER MODAL */
+.draws-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);}
+.draws-modal.open{display:flex;flex-direction:column;}
+.draws-modal-inner{background:var(--bg);border-top:1px solid var(--border);border-radius:20px 20px 0 0;
+  margin-top:auto;max-height:75vh;display:flex;flex-direction:column;
+  max-width:480px;width:100%;margin-left:auto;margin-right:auto;}
+.draws-modal-head{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.draws-modal-title{font-family:'Oswald',sans-serif;font-size:16px;color:var(--green);letter-spacing:2px;}
+.draws-modal-body{overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;}
+.draw-row{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .2s;}
+.draw-row:hover{border-color:var(--green);background:rgba(62,207,142,.06);}
+.draw-row-time{font-family:'Oswald',sans-serif;font-size:18px;color:var(--green);}
+.draw-row-id{font-family:'Source Code Pro',monospace;font-size:11px;color:var(--muted2);}
+.draw-row-date{font-family:'Source Code Pro',monospace;font-size:11px;color:var(--muted2);}
+.draw-row-nums{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px;}
+.draw-row-ball{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Source Code Pro',monospace;font-size:9px;font-weight:600;
+  background:var(--surface);border:1px solid var(--border2);color:var(--blue2);}
+.draw-row-ball.bonus-ball{border-color:var(--red)!important;color:var(--red)!important;box-shadow:0 0 0 1px var(--red);}
+
+/* BONUS number on grid */
+.nc.bonus-num::after{content:'';position:absolute;inset:-3px;border-radius:8px;
+  border:2.5px solid var(--red);background:rgba(255,90,90,.08);pointer-events:none;}
 .nc.winner{position:relative;}
 .nc.winner::after{content:'';position:absolute;inset:-3px;border-radius:8px;
   border:2.5px solid #ffffff;
@@ -799,20 +824,12 @@ function toggleMode(mode) {
     if (winnerMode) {
       clearWinner();
     } else {
-      winnerMode = true;
-      document.getElementById('btnWinner').className = 'toggle-btn active-win';
-      document.getElementById('btnDraw').className   = drawActive ? 'toggle-btn active-draw' : 'toggle-btn';
-      document.getElementById('clearWinnerBtn').style.display = 'block';
-      syncWinnerGrid();
+      // Open draws picker modal instead of manual grid pick
+      openDrawsModal();
     }
   } else { // draw
     if (!winnerMode) {
-      // must select winner first
-      winnerMode = true;
-      document.getElementById('btnWinner').className = 'toggle-btn active-win';
-      document.getElementById('clearWinnerBtn').style.display = 'block';
-      syncWinnerGrid();
-      alert('Επίλεξε πρώτα τα κληρωθέντα νούμερα (πάτα στο πλέγμα) και μετά πάτα ξανά ΔΙΑΛΟΓΗ.');
+      openDrawsModal();
       return;
     }
     drawActive = true;
@@ -821,8 +838,235 @@ function toggleMode(mode) {
   }
 }
 
-function syncWinnerGrid() {
-  // In winner mode, grid clicks pick drawn numbers instead of building blocks
+// ── DRAWS PICKER ──
+var currentBonus = 0;
+
+function openDrawsModal() {
+  document.getElementById('drawsModal').className = 'draws-modal open';
+  document.body.style.overflow = 'hidden';
+  var body = document.getElementById('drawsModalBody');
+  body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted2);">Φόρτωση κληρώσεων...</div>';
+  spFetchJsonWithFallback('https://api.opap.gr/draws/v3.0/1100/last-result-and-active')
+    .then(function(meta){
+      var lastId = meta && meta.last ? Number(meta.last.drawId || 0) : 0;
+      if (!lastId) throw 0;
+      var fromId = Math.max(1, lastId - 49);
+      return spFetchJsonWithFallback('https://api.opap.gr/draws/v3.0/1100/draw-id/' + fromId + '/' + lastId + '?limit=50');
+    })
+    .then(function(data){
+      var draws = spExtractDrawArray(data);
+      draws = normalizeDraws(draws);
+      if (!draws.length) throw 0;
+      renderDrawsModal(draws);
+    })
+    .catch(function(){
+      document.getElementById('drawsModalBody').innerHTML =
+        '<div style="color:var(--red);padding:20px;">Αδύνατη φόρτωση κληρώσεων.</div>';
+    });
+}
+
+function closeDrawsModal() {
+  document.getElementById('drawsModal').className = 'draws-modal';
+  document.body.style.overflow = '';
+}
+
+var _cachedDraws = [];
+
+function renderDrawsModal(draws) {
+  _cachedDraws = draws;
+  var body = document.getElementById('drawsModalBody');
+
+  var batchHtml =
+    '<div style="background:rgba(232,184,75,.08);border:1px solid rgba(232,184,75,.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;">'+
+      '<div style="font-size:11px;color:var(--gold);letter-spacing:2px;font-family:Oswald,sans-serif;margin-bottom:8px;">⚡ ΜΑΖΙΚΗ ΔΙΑΛΟΓΗ</div>'+
+      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">'+
+        '<div style="font-size:12px;color:var(--muted2);white-space:nowrap;">ΤΕΛΕΥΤΑΙΕΣ</div>'+
+        '<input id="batchCount" type="number" min="1" max="500" value="20" '+
+          'style="width:70px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-family:Oswald,sans-serif;text-align:center;">'+
+        '<div style="font-size:12px;color:var(--muted2);white-space:nowrap;">ΚΛΗΡΩΣΕΙΣ</div>'+
+        '<button id="batchBtn" onclick="runBatchDraw()" '+
+          'style="flex:1;padding:10px;background:linear-gradient(135deg,#b8860b,var(--gold));border:none;border-radius:8px;font-family:Oswald,sans-serif;font-size:14px;font-weight:700;color:#000;cursor:pointer;letter-spacing:1px;">'+
+          '⚡ ΕΚΚΙΝΗΣΗ'+
+        '</button>'+
+      '</div>'+
+      '<div style="font-size:10px;color:var(--muted2);font-family:monospace;">Αθροίζει κέρδη όλων των κληρώσεων · Απεικονίζει μόνο την πιο κερδοφόρα</div>'+
+    '</div>';
+
+  var html = '';
+  draws.forEach(function(draw) {
+    var time = '--:--', dateStr = '';
+    if (draw.drawTime) {
+      var d = new Date(draw.drawTime);
+      time = (d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+      dateStr = d.getDate()+'/'+(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2);
+    }
+    var nums = draw.winningNumbers.list;
+    var bonus = draw.bonus || 0;
+    var ballsHTML = nums.map(function(n){
+      var cls = 'draw-row-ball' + (n === bonus ? ' bonus-ball' : '');
+      return '<div class="'+cls+'">'+(n<10?'0'+n:n)+'</div>';
+    }).join('');
+    html +=
+      '<div class="draw-row" onclick="selectDraw('+draw.drawId+','+JSON.stringify(nums)+','+bonus+')">'+
+        '<div style="flex:1">'+
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">'+
+            '<div class="draw-row-time">'+time+'</div>'+
+            '<div class="draw-row-id">#'+draw.drawId+'</div>'+
+            '<div class="draw-row-date">'+dateStr+'</div>'+
+          '</div>'+
+          '<div class="draw-row-nums">'+ballsHTML+'</div>'+
+        '</div>'+
+        '<div style="color:var(--green);font-size:18px;">›</div>'+
+      '</div>';
+  });
+  body.innerHTML = batchHtml + html;
+}
+
+function runBatchDraw() {
+  if (!currentLines) {
+    alert('Δημιούργησε πρώτα σύστημα!');
+    return;
+  }
+
+  var n = parseInt(document.getElementById('batchCount').value, 10) || 10;
+  if (n < 1) n = 1;
+  if (n > 500) n = 500;
+  document.getElementById('batchCount').value = n;
+
+  var btn = document.getElementById('batchBtn') || document.querySelector('[onclick="runBatchDraw()"]');
+  if (btn) { btn.textContent = '⏳ Φόρτωση...'; btn.disabled = true; }
+
+  var PAGE = 100; // max per request
+
+  spFetchJsonWithFallback('https://api.opap.gr/draws/v3.0/1100/last-result-and-active')
+    .then(function(meta) {
+      var lastId = meta && meta.last ? Number(meta.last.drawId || 0) : 0;
+      if (!lastId) throw new Error('No last drawId');
+
+      var pages = [];
+      var remaining = n;
+      var toId = lastId;
+      while (remaining > 0) {
+        var pageSize = Math.min(remaining, PAGE);
+        var fromId = Math.max(1, toId - pageSize + 1);
+        pages.push({from: fromId, to: toId, limit: pageSize});
+        toId = fromId - 1;
+        remaining -= pageSize;
+        if (toId < 1) break;
+      }
+
+      return pages.reduce(function(promise, page) {
+        return promise.then(function(allDraws) {
+          return spFetchJsonWithFallback(
+            'https://api.opap.gr/draws/v3.0/1100/draw-id/' + page.from + '/' + page.to + '?limit=' + page.limit
+          ).then(function(data) {
+            var draws = normalizeDraws(spExtractDrawArray(data));
+            return allDraws.concat(draws);
+          });
+        });
+      }, Promise.resolve([]));
+    })
+    .then(function(draws) {
+      if (!draws.length) throw new Error('No draws returned');
+
+      // Draws έρχονται από πιο πρόσφατο → παλιότερο
+      // Σε ισοπαλία κρατάμε το πρώτο (= πιο πρόσφατο)
+      var bestDraw = null;
+      var bestWin = -1;
+      var aggregateWin = 0;
+
+      draws.forEach(function(draw) {
+        var nums = draw.winningNumbers.list;
+        var totalWinThisDraw = 0;
+
+        currentLines.forEach(function(blockIndices) {
+          var lineNums = [];
+          blockIndices.forEach(function(bi) {
+            lineNums = lineNums.concat(blocks[bi].numbers);
+          });
+          var lineSize = lineNums.length;
+          if (lineSize > 12) return; // δεν υπάρχει payout table πάνω από 12
+          var hits = lineNums.filter(function(x) { return nums.indexOf(x) >= 0; }).length;
+          totalWinThisDraw += getPayout(lineSize, hits);
+        });
+
+        totalWinThisDraw = Math.round(totalWinThisDraw * 100) / 100;
+        aggregateWin += totalWinThisDraw;
+
+        if (bestDraw === null || totalWinThisDraw > bestWin) {
+          bestWin = totalWinThisDraw;
+          bestDraw = draw;
+        }
+      });
+
+      aggregateWin = Math.round(aggregateWin * 100) / 100;
+      if (!bestDraw) throw new Error('No best draw found');
+
+      // Απεικόνιση μόνο της καλύτερης κλήρωσης στο board
+      closeDrawsModal();
+      selectDraw(bestDraw.drawId, bestDraw.winningNumbers.list, bestDraw.bonus || 0);
+
+      setTimeout(function() {
+        var wrap = document.getElementById('resultsWrap');
+        if (!wrap) return;
+
+        // Αφαίρεση παλιού batch banner
+        var old = wrap.querySelector('.batch-banner');
+        if (old) old.remove();
+
+        // Banner με αθροιστικά κέρδη
+        var banner = document.createElement('div');
+        banner.className = 'batch-banner';
+        banner.style.cssText =
+          'background:rgba(232,184,75,.1);border:1px solid rgba(232,184,75,.35);' +
+          'border-radius:10px;padding:10px 14px;margin-bottom:12px;' +
+          'font-family:Source Code Pro,monospace;font-size:11px;color:var(--muted2);line-height:1.8;';
+        banner.innerHTML =
+          'Batch <b style="color:var(--text)">' + draws.length + '</b> κληρώσεων' +
+          ' · Συνολικά κέρδη: <b style="color:var(--green)">' + aggregateWin.toFixed(2) + '€</b>' +
+          ' · Καλύτερη: <b style="color:var(--gold)">#' + bestDraw.drawId + '</b>' +
+          ' · Κέρδος καλύτερης: <b style="color:var(--gold)">' + bestWin.toFixed(2) + '€</b>';
+        wrap.insertBefore(banner, wrap.firstChild);
+
+        // Αντικατάσταση total box με αθροιστικό batch total
+        var totalBox = wrap.querySelector('.total-winnings');
+        if (totalBox) {
+          totalBox.innerHTML =
+            '<div class="total-winnings-label"><b>ΣΥΝΟΛΙΚΑ ΚΕΡΔΗ BATCH</b><br>' +
+            draws.length + ' κληρώσεις × ' + currentLines.length + ' στήλες</div>' +
+            '<div class="total-winnings-amount">' + aggregateWin.toFixed(2) + '<small>€</small></div>';
+        }
+      }, 150);
+
+      if (btn) { btn.textContent = '⚡ ΕΚΚΙΝΗΣΗ'; btn.disabled = false; }
+    })
+    .catch(function(err) {
+      console.error('runBatchDraw failed:', err);
+      if (btn) { btn.textContent = '⚡ ΕΚΚΙΝΗΣΗ'; btn.disabled = false; }
+      alert('Αδύνατη φόρτωση. Δοκίμασε ξανά.');
+    });
+}
+
+function selectDraw(drawId, nums, bonus) {
+  closeDrawsModal();
+  // Set winner nums from this draw
+  winnerNums.clear();
+  nums.forEach(function(n){ winnerNums.add(n); });
+  currentBonus = bonus;
+  // Activate winner mode
+  winnerMode = true;
+  document.getElementById('btnWinner').className = 'toggle-btn active-win';
+  document.getElementById('clearWinnerBtn').style.display = 'block';
+  syncWinnerGridWithBonus();
+  // Auto-activate draw
+  drawActive = true;
+  document.getElementById('btnDraw').className = 'toggle-btn active-draw';
+  if (currentLines) runDraw();
+}
+
+function syncWinnerGrid() { syncWinnerGridWithBonus(); }
+
+function syncWinnerGridWithBonus() {
   for (var n = 1; n <= 80; n++) {
     var el = document.getElementById('nc' + n);
     if (!el) continue;
@@ -839,19 +1083,21 @@ function syncWinnerGrid() {
       el.style.color       = '';
     }
     if (winnerNums.has(n)) cls += ' winner';
+    if (n === currentBonus) cls += ' bonus-num';
     el.className = cls;
   }
 }
 
 function toggleNumWinner(n) {
+  // In draw mode: allow manual add/remove of any number
   if (winnerNums.has(n)) winnerNums.delete(n);
   else winnerNums.add(n);
-  syncWinnerGrid();
+  syncWinnerGridWithBonus();
   if (drawActive && currentLines) runDraw();
 }
 
 function clearWinner() {
-  winnerMode = false; drawActive = false; winnerNums.clear();
+  winnerMode = false; drawActive = false; winnerNums.clear(); currentBonus = 0;
   document.getElementById('btnWinner').className = 'toggle-btn';
   document.getElementById('btnDraw').className   = 'toggle-btn';
   document.getElementById('clearWinnerBtn').style.display = 'none';
@@ -1252,7 +1498,20 @@ function chunkArr(arr, size) {
   return out;
 }
 </script>
-<!-- STATS OVERLAY -->
+<!-- DRAWS PICKER MODAL -->
+<div class="draws-modal" id="drawsModal">
+  <div class="draws-modal-inner">
+    <div class="draws-modal-head">
+      <div class="draws-modal-title">🏆 ΕΠΙΛΟΓΗ ΚΛΗΡΩΣΗΣ</div>
+      <button class="qr-close" onclick="closeDrawsModal()">✕</button>
+    </div>
+    <div class="draws-modal-body" id="drawsModalBody">
+      <div style="text-align:center;padding:30px;color:var(--muted2);">Φόρτωση...</div>
+    </div>
+  </div>
+</div>
+
+
 <div id="spOverlay" style="display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;">
   <div style="max-width:520px;margin:0 auto;padding:16px 16px 90px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:12px 0;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10;">
