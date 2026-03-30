@@ -391,10 +391,21 @@ body::before{content:'';position:fixed;inset:0;
 
   <!-- STEP 1: BLOCKS -->
   <div class="sec-title"><div class="step-dot">1</div> ΟΜΑΔΕΣ ΑΡΙΘΜΩΝ</div>
-  <div class="info-banner">
-    Επίλεξε αριθμούς και πάτα <b>ΠΡΟΣΘΗΚΗ ΟΜΑΔΑΣ</b>.<br>
-    Κάθε ομάδα μπορεί να έχει <b>οποιοδήποτε μέγεθος</b>.<br>
-    Κανένας αριθμός δεν μπορεί να ανήκει σε δύο ομάδες.
+  <div style="display:flex;gap:10px;margin-bottom:20px;align-items:stretch;">
+    <div class="info-banner" style="margin-bottom:0;flex:1;">
+      Επίλεξε αριθμούς και πάτα <b>ΠΡΟΣΘΗΚΗ ΟΜΑΔΑΣ</b>.<br>
+      Κάθε ομάδα μπορεί να έχει <b>οποιοδήποτε μέγεθος</b>.<br>
+      Κανένας αριθμός δεν μπορεί να ανήκει σε δύο ομάδες.
+    </div>
+    <div id="groupCounter" style="display:none;flex-shrink:0;width:90px;
+      background:linear-gradient(135deg,rgba(232,184,75,.15),rgba(232,184,75,.08));
+      border:1.5px solid rgba(232,184,75,.5);border-radius:10px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">
+      <div id="groupCountNum" style="font-family:'Oswald',sans-serif;font-size:36px;font-weight:700;
+        color:var(--gold);line-height:1;">0</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:2px;
+        color:var(--muted2);text-transform:uppercase;">ΟΜΑΔΕΣ</div>
+    </div>
   </div>
 
   <!-- TOGGLE BAR: εμφανίζεται μετά τη δημιουργία συστήματος, πάνω από το πλέγμα -->
@@ -524,6 +535,18 @@ function toggleStandard(id) {
 }
 
 // ── GRID ──
+function updateGroupCounter() {
+  var cnt = document.getElementById('groupCounter');
+  var num = document.getElementById('groupCountNum');
+  if (!cnt || !num) return;
+  if (blocks.length === 0) {
+    cnt.style.display = 'none';
+  } else {
+    cnt.style.display = 'flex';
+    num.textContent = blocks.length;
+  }
+}
+
 function buildGrid() {
   var g = document.getElementById('numGrid'); g.innerHTML = '';
   for (var n = 1; n <= 80; n++) {
@@ -559,10 +582,12 @@ function refreshGrid() {
       el.style.fontWeight  = '800';
     } else if (pendingNums.has(n)) {
       el.className = 'nc pending';
-      el.style.background = ''; el.style.borderColor = ''; el.style.color = '';
+      el.style.background = ''; el.style.borderColor = ''; el.style.borderWidth = '';
+      el.style.borderStyle = ''; el.style.color = ''; el.style.fontWeight = '';
     } else {
       el.className = 'nc';
-      el.style.background = ''; el.style.borderColor = ''; el.style.color = '';
+      el.style.background = ''; el.style.borderColor = ''; el.style.borderWidth = '';
+      el.style.borderStyle = ''; el.style.color = ''; el.style.fontWeight = '';
     }
   }
 }
@@ -578,21 +603,36 @@ function refreshPendingBar() {
   });
 }
 function startNewBlock() { window.scrollTo({top:0, behavior:'smooth'}); }
+function reindexBlocks() {
+  // Rebuild standardIds based on isStd flag on each block
+  var newStdIds = new Set();
+  blocks.forEach(function(bl, i) {
+    var wasStd = standardIds.has(bl.id);
+    bl.id   = i + 1;
+    bl.name = 'ΟΜΑΔΑ ' + (i + 1);
+    var col = BC[i % BC.length];
+    bl.bg = col.bg; bl.b = col.b; bl.d = col.d; bl.t = col.t;
+    bl.n  = col.n;  bl.bs = col.bs||'solid'; bl.bw = col.bw||'2px';
+    if (wasStd) newStdIds.add(bl.id);
+  });
+  standardIds = newStdIds;
+  blockCounter = blocks.length;
+}
+
 function confirmBlock() {
   if (pendingNums.size === 0) return;
   var nums = Array.from(pendingNums).sort(function(a,b){return a-b;});
-  blockCounter++;
-  var c = BC[blocks.length % BC.length];
-  blocks.push({id:blockCounter, name:'ΟΜΑΔΑ '+blockCounter, numbers:nums, bg:c.bg, b:c.b, d:c.d, t:c.t, n:c.n, bs:c.bs||'solid', bw:c.bw||'2px'});
+  // Push with temp id, then reindex
+  blocks.push({id:0, name:'', numbers:nums, bg:'', b:'', d:'', t:'', n:'', bs:'solid', bw:'2px'});
+  reindexBlocks();
   pendingNums.clear();
-  refreshGrid(); refreshPendingBar(); renderBlocks(); updateUI();
+  refreshGrid(); refreshPendingBar(); renderBlocks(); updateUI(); updateGroupCounter();
 }
 function cancelPending() { pendingNums.clear(); refreshGrid(); refreshPendingBar(); }
 function deleteBlock(id) {
   blocks = blocks.filter(function(b){ return b.id !== id; });
-  // re-assign colors strictly
-  blocks.forEach(function(bl,i){ var c=BC[i%BC.length]; bl.bg=c.bg; bl.b=c.b; bl.d=c.d; bl.t=c.t; bl.n=c.n; bl.bs=c.bs||'solid'; bl.bw=c.bw||'2px'; });
-  refreshGrid(); renderBlocks(); updateUI();
+  reindexBlocks();
+  refreshGrid(); renderBlocks(); updateUI(); updateGroupCounter();
   document.getElementById('resultsWrap').innerHTML = '';
   currentLines = null;
   winnerMode = false; drawActive = false; winnerNums.clear();
@@ -640,7 +680,7 @@ function resetAll() {
   if (!confirm('Να διαγραφούν όλες οι ομάδες;')) return;
   blocks = []; pendingNums.clear(); blockCounter = 0;
   blockK = 2; triggerVal = 3; hitVal = 2; standardIds.clear();
-  refreshGrid(); refreshPendingBar(); renderBlocks(); updateUI();
+  refreshGrid(); refreshPendingBar(); renderBlocks(); updateUI(); updateGroupCounter();
   document.getElementById('resultsWrap').innerHTML = '';
   currentLines = null;
   winnerMode = false; drawActive = false; winnerNums.clear();
