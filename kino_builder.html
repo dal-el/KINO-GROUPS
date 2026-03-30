@@ -800,7 +800,8 @@ function genCover(pool, k, trig, hit) {
 var winnerMode  = false;
 var winnerNums  = new Set();
 var drawActive  = false;
-var batchModeActive = false; // true μόνο σε batch διαλογή
+var batchModeActive = false;
+var _batchData = null; // { draws, aggregateWin, bestWin, bestDraw, hitBreakdown } // true μόνο σε batch διαλογή
 
 var PAYOUTS = {
   1:{1:1.25},
@@ -1023,119 +1024,14 @@ function runBatchDraw() {
       closeDrawsModal();
       selectDraw(bestDraw.drawId, bestDraw.winningNumbers.list, bestDraw.bonus || 0, true);
 
-      setTimeout(function() {
-        var wrap = document.getElementById('resultsWrap');
-        if (!wrap) return;
-
-        // --- Batch banner (mini) ---
-        var oldBanner = wrap.querySelector('.batch-banner');
-        if (oldBanner) oldBanner.remove();
-        var banner = document.createElement('div');
-        banner.className = 'batch-banner';
-        banner.style.cssText =
-          'background:rgba(232,184,75,.1);border:1px solid rgba(232,184,75,.35);' +
-          'border-radius:10px;padding:10px 14px;margin-bottom:12px;' +
-          'font-family:Source Code Pro,monospace;font-size:11px;color:var(--muted2);line-height:1.8;';
-        banner.innerHTML =
-          'Batch <b style="color:var(--text)">' + draws.length + '</b> κληρώσεων' +
-          ' · Συνολικά κέρδη: <b style="color:var(--green)">' + aggregateWin.toFixed(2) + '€</b>' +
-          ' · Καλύτερη: <b style="color:var(--gold)">#' + bestDraw.drawId + '</b>' +
-          ' · Κέρδος καλύτερης: <b style="color:var(--gold)">' + bestWin.toFixed(2) + '€</b>';
-        wrap.insertBefore(banner, wrap.firstChild);
-
-        // --- Total winnings box → batch label ---
-        var totalBox = wrap.querySelector('.total-winnings');
-        if (totalBox) {
-          totalBox.innerHTML =
-            '<div class="total-winnings-label"><b>ΣΥΝΟΛΙΚΑ ΚΕΡΔΗ BATCH</b><br>' +
-            draws.length + ' κληρώσεις × ' + currentLines.length + ' στήλες</div>' +
-            '<div class="total-winnings-amount">' + aggregateWin.toFixed(2) + '<small>€</small></div>';
-
-          // --- Aggregate breakdown box (αμέσως μετά το total box) ---
-          var oldBreakdown = wrap.querySelector('.batch-breakdown-box');
-          if (oldBreakdown) oldBreakdown.remove();
-
-          // Sort keys: πρώτα κατά k φθίνουσα, μετά κατά hits φθίνουσα
-          var keys = Object.keys(hitBreakdown).sort(function(a, b) {
-            var ak = parseInt(a.split('/')[1]), bk = parseInt(b.split('/')[1]);
-            if (bk !== ak) return bk - ak;
-            var ah = parseInt(a.split('/')[0]), bh = parseInt(b.split('/')[0]);
-            return bh - ah;
-          });
-
-          var rowsHtml = keys.map(function(key) {
-            var bd = hitBreakdown[key];
-            var parts = key.split('/');
-            var h = parseInt(parts[0]), k2 = parseInt(parts[1]);
-            var isAbsolute = (h === k2);
-            var keyColor = isAbsolute ? 'var(--green)' : h >= Math.ceil(k2 * 0.7) ? 'var(--blue2)' : 'var(--muted2)';
-            var totalPay = Math.round(bd.totalPayout * 100) / 100;
-
-            var absHtml = '';
-            if (isAbsolute && bd.absoluteDrawIds.length > 0) {
-              var idChips = bd.absoluteDrawIds.map(function(id){
-                return '<span style="display:inline-block;background:rgba(232,184,75,.12);border:1px solid rgba(232,184,75,.3);' +
-                  'border-radius:6px;padding:2px 8px;font-family:Source Code Pro,monospace;font-size:10px;' +
-                  'color:var(--gold);white-space:nowrap;">#' + id + '</span>';
-              }).join('');
-              absHtml =
-                '<div style="padding:6px 14px 10px 14px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">' +
-                '<span style="font-size:10px;color:var(--muted2);margin-right:2px;">🏆</span>' +
-                idChips + '</div>';
-            }
-
-            // main row: 4 columns — count×key | per-line | spacer | total
-            var mainRow =
-              '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:12px 14px ' + (absHtml ? '4px' : '12px') + ' 14px;">' +
-                // LEFT: count × key · per-line
-                '<div style="display:flex;align-items:baseline;gap:6px;">' +
-                  '<span style="font-family:Oswald,sans-serif;font-size:22px;color:var(--text);font-weight:700;">' + bd.count + '</span>' +
-                  '<span style="color:var(--muted);font-size:11px;">×</span>' +
-                  '<span style="font-family:Source Code Pro,monospace;font-size:13px;font-weight:700;color:' + keyColor + ';">' + key + '</span>' +
-                  '<span style="font-size:10px;color:var(--muted2);font-family:monospace;margin-left:4px;">' + getPayout(k2,h).toFixed(2) + '€/στήλη</span>' +
-                '</div>' +
-                // RIGHT: total — always right-aligned in same column
-                '<div style="font-family:Oswald,sans-serif;font-size:16px;color:var(--gold);font-weight:700;text-align:right;min-width:110px;">' +
-                  totalPay.toFixed(2) + '€' +
-                '</div>' +
-              '</div>';
-
-            return '<div style="border-bottom:1px solid rgba(255,255,255,.05);">' + mainRow + absHtml + '</div>';
-          }).join('');
-
-          var breakdownBox = document.createElement('div');
-          breakdownBox.className = 'batch-breakdown-box';
-          breakdownBox.style.cssText =
-            'background:var(--card);border:1px solid var(--border);border-radius:12px;' +
-            'overflow:hidden;margin-bottom:14px;';
-          breakdownBox.innerHTML =
-            '<div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:2px;' +
-            'color:var(--muted2);text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border);">' +
-            'ΑΝΑΛΥΣΗ ΕΠΙΤΥΧΙΩΝ BATCH · ' +
-            '<span style="color:var(--text)">' + draws.length + '</span> κληρώσεις</div>' +
-            (rowsHtml || '<div style="padding:12px 14px;color:var(--muted);font-size:11px;">Κανένα κέρδος σε αυτό το batch</div>');
-
-          totalBox.insertAdjacentElement('afterend', breakdownBox);
-        }
-
-        // --- Note πάνω από verified box: μόνο σε batch mode ---
-        var oldNote = wrap.querySelector('.batch-top-note');
-        if (oldNote) oldNote.remove();
-        var verifiedBox = wrap.querySelector('.verified-box');
-        if (verifiedBox) {
-          var note = document.createElement('div');
-          note.className = 'batch-top-note';
-          note.style.cssText =
-            'background:rgba(74,158,255,.06);border:1px solid rgba(74,158,255,.2);' +
-            'border-radius:10px;padding:10px 14px;margin-bottom:10px;' +
-            'font-family:Source Code Pro,monospace;font-size:10px;color:var(--blue2);line-height:1.7;';
-          note.innerHTML =
-            '<b style="letter-spacing:1px;">⬇ ΑΝΑΛΥΣΗ TOP ΚΛΗΡΩΣΗΣ #' + bestDraw.drawId + '</b><br>' +
-            'Η παρακάτω ανάλυση αφορά μόνο την πιο κερδοφόρα κλήρωση του batch.<br>' +
-            'Τα συνολικά κέρδη batch αφορούν το άθροισμα όλων των κληρώσεων που ελέγχθηκαν.';
-          verifiedBox.insertAdjacentElement('beforebegin', note);
-        }
-      }, 150);
+      // Store batch data globally — runDraw() will inject the boxes synchronously
+      _batchData = {
+        drawCount: draws.length,
+        aggregateWin: aggregateWin,
+        bestWin: bestWin,
+        bestDrawId: bestDraw.drawId,
+        hitBreakdown: hitBreakdown
+      };
 
       if (btn) { btn.textContent = '⚡ ΕΚΚΙΝΗΣΗ'; btn.disabled = false; }
     })
@@ -1322,6 +1218,96 @@ function runDraw() {
   wrap.appendChild(totalBar);
   wrap.appendChild(verifiedBox);
   for (var di = 0; di < cardData.length; di++) wrap.appendChild(cardData[di].el);
+
+  // ── BATCH INJECTIONS (synchronous, after DOM is ready) ──
+  if (batchModeActive && _batchData) {
+    var bd_ = _batchData;
+
+    // Mini banner at top
+    var oldBanner = wrap.querySelector('.batch-banner');
+    if (oldBanner) oldBanner.remove();
+    var banner_ = document.createElement('div');
+    banner_.className = 'batch-banner';
+    banner_.style.cssText = 'background:rgba(232,184,75,.1);border:1px solid rgba(232,184,75,.35);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-family:Source Code Pro,monospace;font-size:11px;color:var(--muted2);line-height:1.8;';
+    banner_.innerHTML =
+      'Batch <b style="color:var(--text)">' + bd_.drawCount + '</b> κληρώσεων' +
+      ' · Συνολικά κέρδη: <b style="color:var(--green)">' + bd_.aggregateWin.toFixed(2) + '€</b>' +
+      ' · Καλύτερη: <b style="color:var(--gold)">#' + bd_.bestDrawId + '</b>' +
+      ' · Κέρδος καλύτερης: <b style="color:var(--gold)">' + bd_.bestWin.toFixed(2) + '€</b>';
+    wrap.insertBefore(banner_, wrap.firstChild);
+
+    // Update total-winnings box
+    var totalBox_ = wrap.querySelector('.total-winnings');
+    if (totalBox_) {
+      totalBox_.innerHTML =
+        '<div class="total-winnings-label"><b>ΣΥΝΟΛΙΚΑ ΚΕΡΔΗ BATCH</b><br>' +
+        bd_.drawCount + ' κληρώσεις × ' + currentLines.length + ' στήλες</div>' +
+        '<div class="total-winnings-amount">' + bd_.aggregateWin.toFixed(2) + '<small>€</small></div>';
+
+      // Breakdown box
+      var oldBreakdown_ = wrap.querySelector('.batch-breakdown-box');
+      if (oldBreakdown_) oldBreakdown_.remove();
+
+      var keys_ = Object.keys(bd_.hitBreakdown).sort(function(a, b) {
+        var ak = parseInt(a.split('/')[1]), bk = parseInt(b.split('/')[1]);
+        if (bk !== ak) return bk - ak;
+        return parseInt(b.split('/')[0]) - parseInt(a.split('/')[0]);
+      });
+
+      var rowsHtml_ = keys_.map(function(key) {
+        var entry = bd_.hitBreakdown[key];
+        var parts = key.split('/');
+        var h = parseInt(parts[0]), k2 = parseInt(parts[1]);
+        var isAbs = (h === k2);
+        var keyClr = isAbs ? 'var(--green)' : h >= Math.ceil(k2*0.7) ? 'var(--blue2)' : 'var(--muted2)';
+        var tp = Math.round(entry.totalPayout * 100) / 100;
+        var absRow = '';
+        if (isAbs && entry.absoluteDrawIds.length > 0) {
+          var chips = entry.absoluteDrawIds.map(function(id){
+            return '<span style="display:inline-block;background:rgba(232,184,75,.12);border:1px solid rgba(232,184,75,.3);border-radius:6px;padding:2px 8px;font-family:Source Code Pro,monospace;font-size:10px;color:var(--gold);white-space:nowrap;">#'+id+'</span>';
+          }).join('');
+          absRow = '<div style="padding:4px 14px 10px 14px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;"><span style="font-size:10px;color:var(--muted2);margin-right:2px;">🏆</span>'+chips+'</div>';
+        }
+        var mainRow_ =
+          '<div style="display:grid;grid-template-columns:1fr auto;align-items:center;padding:12px 14px '+(absRow?'4px':'12px')+' 14px;">'+
+            '<div style="display:flex;align-items:baseline;gap:6px;">'+
+              '<span style="font-family:Oswald,sans-serif;font-size:22px;color:var(--text);font-weight:700;">'+entry.count+'</span>'+
+              '<span style="color:var(--muted);font-size:11px;">×</span>'+
+              '<span style="font-family:Source Code Pro,monospace;font-size:13px;font-weight:700;color:'+keyClr+';">'+key+'</span>'+
+              '<span style="font-size:10px;color:var(--muted2);font-family:monospace;margin-left:4px;">'+getPayout(k2,h).toFixed(2)+'€/στήλη</span>'+
+            '</div>'+
+            '<div style="font-family:Oswald,sans-serif;font-size:16px;color:var(--gold);font-weight:700;text-align:right;min-width:110px;">'+tp.toFixed(2)+'€</div>'+
+          '</div>';
+        return '<div style="border-bottom:1px solid rgba(255,255,255,.05);">'+mainRow_+absRow+'</div>';
+      }).join('');
+
+      var brkBox = document.createElement('div');
+      brkBox.className = 'batch-breakdown-box';
+      brkBox.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;';
+      brkBox.innerHTML =
+        '<div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:2px;color:var(--muted2);text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border);">'+
+        'ΑΝΑΛΥΣΗ ΕΠΙΤΥΧΙΩΝ BATCH · <span style="color:var(--text)">'+bd_.drawCount+'</span> κληρώσεις</div>'+
+        (rowsHtml_ || '<div style="padding:12px 14px;color:var(--muted);font-size:11px;">Κανένα κέρδος</div>');
+      totalBox_.insertAdjacentElement('afterend', brkBox);
+    }
+
+    // Note above verified-box
+    var oldNote_ = wrap.querySelector('.batch-top-note');
+    if (oldNote_) oldNote_.remove();
+    var vBox_ = wrap.querySelector('.verified-box');
+    if (vBox_) {
+      var note_ = document.createElement('div');
+      note_.className = 'batch-top-note';
+      note_.style.cssText = 'background:rgba(74,158,255,.06);border:1px solid rgba(74,158,255,.2);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-family:Source Code Pro,monospace;font-size:10px;color:var(--blue2);line-height:1.7;';
+      note_.innerHTML =
+        '<b style="letter-spacing:1px;">⬇ ΑΝΑΛΥΣΗ TOP ΚΛΗΡΩΣΗΣ #'+bd_.bestDrawId+'</b><br>'+
+        'Η παρακάτω ανάλυση αφορά μόνο την πιο κερδοφόρα κλήρωση του batch.<br>'+
+        'Τα συνολικά κέρδη batch αφορούν το άθροισμα όλων των κληρώσεων που ελέγχθηκαν.';
+      vBox_.insertAdjacentElement('beforebegin', note_);
+    }
+
+    _batchData = null; // consumed
+  }
 
   // scroll to results
   document.getElementById('resultsWrap').scrollIntoView({behavior:'smooth', block:'start'});
