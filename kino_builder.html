@@ -218,6 +218,44 @@ body::before{content:'';position:fixed;inset:0;
 .empty-state p{font-size:13px;line-height:1.6;}
 
 /* TOGGLE BAR */
+/* SAVE SYSTEM */
+.save-btn{width:100%;padding:15px;background:linear-gradient(135deg,#0d1f35,#122840);
+  border:1.5px solid var(--blue);border-radius:14px;font-family:'Oswald',sans-serif;font-size:18px;
+  font-weight:600;letter-spacing:2px;color:var(--blue2);cursor:pointer;margin-bottom:16px;display:none;}
+.save-btn:hover{border-color:var(--blue2);background:linear-gradient(135deg,#122840,#1a3a55);}
+.saved-list-btn{width:100%;padding:13px 16px;margin-bottom:20px;background:var(--card);
+  border:1.5px solid var(--border);border-radius:12px;font-family:'Oswald',sans-serif;
+  font-size:14px;font-weight:500;letter-spacing:2px;color:var(--muted2);cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;}
+.saved-list-btn:hover{border-color:var(--gold);color:var(--gold);}
+.sys-modal{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.96);
+  display:none;flex-direction:column;overflow-y:auto;}
+.sys-modal.open{display:flex;}
+.sys-modal-header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:16px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10;}
+.sys-modal-title{font-family:'Oswald',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold);}
+.sys-modal-body{padding:16px;max-width:480px;margin:0 auto;width:100%;}
+.save-form-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.save-form-info{font-size:12px;color:var(--muted2);font-family:monospace;line-height:1.8;
+  margin-bottom:14px;padding:10px 12px;background:var(--surface);border-radius:8px;}
+.save-name-input{width:100%;padding:12px 14px;margin-bottom:12px;background:var(--surface);
+  border:1.5px solid var(--border);border-radius:10px;color:var(--text);
+  font-family:'Lato',sans-serif;font-size:15px;outline:none;}
+.save-name-input:focus{border-color:var(--gold);}
+.save-confirm-btn{width:100%;padding:14px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#b8860b,var(--gold));
+  font-family:'Oswald',sans-serif;font-size:18px;font-weight:600;letter-spacing:2px;color:#000;cursor:pointer;}
+.sys-item{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;margin-bottom:10px;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.sys-item:hover{border-color:var(--gold);}
+.sys-item-name{font-family:'Oswald',sans-serif;font-size:16px;color:var(--gold);margin-bottom:3px;}
+.sys-item-meta{font-size:11px;color:var(--muted);font-family:monospace;line-height:1.5;}
+.sys-del{width:32px;height:32px;border-radius:50%;background:rgba(255,90,90,.1);
+  border:1px solid rgba(255,90,90,.3);color:var(--red);font-size:15px;cursor:pointer;flex-shrink:0;}
+.empty-saved{text-align:center;padding:50px 20px;color:var(--muted);font-size:13px;line-height:1.8;}
+
 .toggle-bar{display:none;gap:8px;margin-bottom:14px;}
 .toggle-bar.visible{display:flex;}
 .toggle-btn{flex:1;padding:11px 8px;background:var(--card);border:1.5px solid var(--border);
@@ -473,7 +511,13 @@ body::before{content:'';position:fixed;inset:0;
     <div class="cond-box" id="condBox">—</div>
   </div>
 
+  <button class="saved-list-btn" onclick="openSavedModal()">
+    📂 ΑΠΟΘΗΚΕΥΜΕΝΑ ΣΥΣΤΗΜΑΤΑ
+    <span id="savedBadge" style="font-size:12px;background:var(--border);border-radius:20px;padding:2px 10px;">0/30</span>
+  </button>
+
   <button class="gen-btn" id="genBtn" onclick="generate()" style="display:none">⚡ ΔΗΜΙΟΥΡΓΙΑ ΣΥΣΤΗΜΑΤΟΣ</button>
+  <button class="save-btn" id="saveBtn" onclick="openSaveModal()">💾 ΑΠΟΘΗΚΕΥΣΗ ΣΥΣΤΗΜΑΤΟΣ</button>
 
   <div id="resultsWrap"></div>
 </div>
@@ -1547,6 +1591,10 @@ function generate() {
   // prepend standard block indices to each line
   var finalLines = best.map(function(line){ return stdIndices.concat(line); });
   renderResults(finalLines);
+  document.getElementById('saveBtn').style.display = 'block';
+  setTimeout(function(){
+    document.getElementById('resultsWrap').scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
 }
 
 function renderResults(lines) {
@@ -1614,6 +1662,119 @@ function renderResults(lines) {
 }
 
 buildGrid(); renderBlocks(); updateUI();
+</script>
+
+<!-- SAVE MODAL -->
+<div class="sys-modal" id="saveModal">
+  <div class="sys-modal-header">
+    <div class="sys-modal-title">💾 ΑΠΟΘΗΚΕΥΣΗ</div>
+    <button class="qr-close" onclick="closeSaveModal()">✕</button>
+  </div>
+  <div class="sys-modal-body">
+    <div class="save-form-card">
+      <div class="save-form-info" id="saveFormInfo">—</div>
+      <input class="save-name-input" id="saveNameInput" type="text" maxlength="40" placeholder="Δώσε όνομα στο σύστημα...">
+      <button class="save-confirm-btn" onclick="confirmSave()">✓ ΑΠΟΘΗΚΕΥΣΗ</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVED LIST MODAL -->
+<div class="sys-modal" id="savedListModal">
+  <div class="sys-modal-header">
+    <div class="sys-modal-title">📂 ΑΠΟΘΗΚΕΥΜΕΝΑ</div>
+    <button class="qr-close" onclick="closeSavedModal()">✕</button>
+  </div>
+  <div class="sys-modal-body" id="savedListBody"></div>
+</div>
+
+<script>
+// ── SAVE SYSTEM ──
+var MAX_SAVED = 30;
+function getSaved(){try{return JSON.parse(localStorage.getItem('kinoBuilderSystems')||'[]');}catch(e){return[];}}
+function setSaved(arr){localStorage.setItem('kinoBuilderSystems',JSON.stringify(arr));refreshSavedBadge();}
+function refreshSavedBadge(){
+  var el=document.getElementById('savedBadge');
+  if(el) el.textContent=getSaved().length+'/30';
+}
+function openSaveModal(){
+  if(!currentLines) return;
+  var stdC=standardIds.size, freeC=blocks.length-stdC;
+  document.getElementById('saveFormInfo').innerHTML=
+    '<b style="color:var(--gold)">Ομάδες:</b> '+blocks.length+
+    ' ('+freeC+' ελεύθερες'+(stdC?' + '+stdC+' Σταθερές':'')+')'+
+    '<br><b style="color:var(--blue2)">k:</b> '+blockK+' ομάδες/στήλη'+
+    '<br><b style="color:var(--green)">Εγγύηση:</b> '+triggerVal+'→'+hitVal+'/'+blockK+
+    '<br><b style="color:var(--muted2)">Στήλες:</b> '+currentLines.length+' × 0.50€';
+  document.getElementById('saveModal').className='sys-modal open';
+  document.body.style.overflow='hidden';
+}
+function closeSaveModal(){document.getElementById('saveModal').className='sys-modal';document.body.style.overflow='';}
+function confirmSave(){
+  var name=document.getElementById('saveNameInput').value.trim();
+  if(!name) return;
+  var saved=getSaved();
+  if(saved.length>=MAX_SAVED){alert('Έχεις φτάσει το όριο των 30 αποθηκευμένων συστημάτων.');return;}
+  saved.push({
+    id:Date.now(), name:name,
+    date:new Date().toLocaleDateString('el-GR'),
+    sys:{
+      blocks:blocks.map(function(b){return{id:b.id,numbers:b.numbers.slice(),name:b.name,n:b.n,bg:b.bg,b:b.b,d:b.d,t:b.t};}),
+      standardIds:Array.from(standardIds),
+      blockK:blockK, triggerVal:triggerVal, hitVal:hitVal,
+      lines:currentLines
+    }
+  });
+  setSaved(saved);
+  closeSaveModal();
+  document.getElementById('saveNameInput').value='';
+  var btn=document.getElementById('saveBtn');
+  var orig=btn.textContent; btn.textContent='✓ ΑΠΟΘΗΚΕΥΘΗΚΕ!';
+  setTimeout(function(){btn.textContent=orig;},1500);
+}
+function openSavedModal(){renderSavedList();document.getElementById('savedListModal').className='sys-modal open';document.body.style.overflow='hidden';}
+function closeSavedModal(){document.getElementById('savedListModal').className='sys-modal';document.body.style.overflow='';}
+function renderSavedList(){
+  var saved=getSaved(), body=document.getElementById('savedListBody');
+  if(!saved.length){body.innerHTML='<div class="empty-saved">Δεν έχεις αποθηκευμένα συστήματα ακόμα.<br><br>Δημιούργησε ένα σύστημα και πάτα 💾</div>';return;}
+  var html='';
+  for(var i=0;i<saved.length;i++){
+    var s=saved[i], stdC=(s.sys.standardIds||[]).length, freeC=s.sys.blocks.length-stdC;
+    html+=
+      '<div class="sys-item" onclick="loadSaved('+s.id+')">'+
+        '<div style="flex:1">'+
+          '<div class="sys-item-name">'+s.name+'</div>'+
+          '<div class="sys-item-meta">'+
+            freeC+' ελεύθερες'+(stdC?' + '+stdC+' Σ':'')+' · k='+s.sys.blockK+
+            ' · '+s.sys.triggerVal+'→'+s.sys.hitVal+'/'+s.sys.blockK+
+            ' · '+s.sys.lines.length+' στήλες · 📅 '+s.date+
+          '</div>'+
+        '</div>'+
+        '<button class="sys-del" onclick="event.stopPropagation();deleteSaved('+s.id+')">✕</button>'+
+      '</div>';
+  }
+  body.innerHTML=html;
+}
+function deleteSaved(id){setSaved(getSaved().filter(function(x){return x.id!==id;}));renderSavedList();}
+function loadSaved(id){
+  var saved=getSaved(), sys=null;
+  for(var i=0;i<saved.length;i++) if(saved[i].id===id){sys=saved[i].sys;break;}
+  if(!sys) return;
+  closeSavedModal();
+  blocks=sys.blocks.map(function(b){return{id:b.id,numbers:b.numbers.slice(),name:b.name,n:b.n,bg:b.bg,b:b.b,d:b.d,t:b.t};});
+  standardIds=new Set(sys.standardIds||[]);
+  blockK=sys.blockK; triggerVal=sys.triggerVal; hitVal=sys.hitVal;
+  blockCounter=blocks.length?Math.max.apply(null,blocks.map(function(b){return b.id;})):0;
+  pendingNums.clear();
+  winnerMode=false; winnerNums.clear(); drawActive=false; currentBonus=0;
+  refreshGrid(); renderBlocks(); updateUI(); updateGroupCounter();
+  currentLines=sys.lines;
+  renderResults(currentLines);
+  document.getElementById('saveBtn').style.display='block';
+  document.getElementById('qrBtnSticky').style.display='block';
+  document.getElementById('toggleBar').className='toggle-bar visible';
+}
+refreshSavedBadge();
 </script>
 
 <!-- STICKY QR BUTTON -->
